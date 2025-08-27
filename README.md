@@ -18,6 +18,13 @@ Scripts such as `scripts/run_tick.py` and `scripts/create_vehicle.py` expect a
 PostgreSQL connection string via the `--dsn` option or the `DATABASE_URL`
 environment variable.
 
+## Stored procedures
+
+Documentation for the SQL procedures lives in [docs/procs.md](docs/procs.md). Notable
+entries include [`economy_tick()`](docs/procs.md#economy_tick) for economic updates
+and [`move_vehicles()`](docs/procs.md#move_vehicles) which advances vehicles along
+their routes.
+
 ## Renderer
 
 A tiny curses-based renderer is included to visualise the map stored in
