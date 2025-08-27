@@ -1,3 +1,4 @@
+[![CI](https://github.com/seanwevans/pg_ttd/actions/workflows/tests.yml/badge.svg)](https://github.com/seanwevans/pg_ttd/actions/workflows/tests.yml)
 # pg_ttd
 
 **pg_ttd** is a prototype of an attempt at *OpenTTD inside PostgreSQL*.
