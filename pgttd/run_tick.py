@@ -1,12 +1,10 @@
-"""Wrapper script to advance the game tick."""
+"""Wrapper module to advance the game tick."""
 
 import argparse
 import logging
 import sys
 
-import psycopg
-
-import pgttd.db as db
+from . import db
 
 
 def main() -> int:
@@ -14,6 +12,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Advance the game tick")
     args = db.parse_dsn(parser)
 
+    conn = None
+    conn_ctx = None
     try:
         conn_ctx = db.connect(args.dsn)
         if hasattr(conn_ctx, "__enter__"):
@@ -25,13 +25,17 @@ def main() -> int:
         conn.commit()
         logging.info("tick() executed successfully")
         return 0
-
     except Exception:  # pragma: no cover - simple CLI logging
         logging.exception("tick() execution failed")
+        if conn:
+            conn.rollback()
         return 1
-    logging.info("tick() executed successfully")
-    return 0
+    finally:
+        if conn:
+            conn.close()
+        if conn_ctx is not conn and hasattr(conn_ctx, "__exit__"):
+            conn_ctx.__exit__(None, None, None)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover - script execution
     sys.exit(main())

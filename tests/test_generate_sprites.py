@@ -26,7 +26,7 @@ def test_generate_palette_fallback(monkeypatch):
 def test_insert_statement_is_escaped(tmp_path):
     malicious_name = "evil'); DROP TABLE sprites; --"
     payload = "data"
-    sql = module.insert_statement(malicious_name, payload)
+    sql = generate_sprites.insert_statement(malicious_name, payload)
 
     conn = sqlite3.connect(":memory:")
     conn.execute("CREATE TABLE sprites(name TEXT, image_base64 TEXT)")
@@ -37,18 +37,18 @@ def test_insert_statement_is_escaped(tmp_path):
 
 
 def test_quote_sql_handles_various_types():
-    assert module.quote_sql("O'Reilly") == "'O''Reilly'"
-    assert module.quote_sql(42) == "'42'"
-    assert module.quote_sql(Path("a'b")) == "'a''b'"
+    assert generate_sprites.quote_sql("O'Reilly") == "'O''Reilly'"
+    assert generate_sprites.quote_sql(42) == "'42'"
+    assert generate_sprites.quote_sql(Path("a'b")) == "'a''b'"
 
 
 def test_main_writes_expected_file(tmp_path, monkeypatch, capsys):
     out = tmp_path / "out.sql"
 
-    monkeypatch.setattr(module, "generate_palette", lambda: {"red": "data"})
+    monkeypatch.setattr(generate_sprites, "generate_palette", lambda: {"red": "data"})
     monkeypatch.setattr(sys, "argv", ["generate_sprites.py", "--output", str(out)])
 
-    module.main()
+    generate_sprites.main()
 
-    assert out.read_text() == module.insert_statement("red", "data") + "\n"
+    assert out.read_text() == generate_sprites.insert_statement("red", "data") + "\n"
     assert f"Wrote 1 sprites to {out}" in capsys.readouterr().out
