@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS vehicles (
     y INTEGER NOT NULL,
     schedule JSONB NOT NULL DEFAULT '[]'::JSONB,
     schedule_idx INTEGER NOT NULL DEFAULT 0,
+    next_waypoint_idx INTEGER NOT NULL DEFAULT 1,
     cargo JSONB NOT NULL DEFAULT '[]'::JSONB,
     company_id INTEGER
 );
