@@ -44,6 +44,7 @@ def collect_coverage(dsn: str) -> List[Tuple[str, float, float]]:
     conninfo_str = conninfo.make_conninfo(dsn, **conninfo_kwargs)
 
     with psycopg.connect(conninfo_str) as conn:
+
         with conn.cursor() as cur:
             cur.execute("CREATE EXTENSION IF NOT EXISTS plpgsql_check")
             cur.execute(query)
