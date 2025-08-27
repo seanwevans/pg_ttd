@@ -4,8 +4,6 @@ import argparse
 import logging
 import sys
 
-import psycopg
-
 import db_util
 
 
@@ -14,29 +12,21 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Advance the game tick")
     args = db_util.parse_dsn(parser)
 
-    conn = None
-    conn_ctx = None
     try:
-        conn_ctx = db_util.connect(args.dsn)
-        if hasattr(conn_ctx, "__enter__"):
-            conn = conn_ctx.__enter__()
-        else:
-            conn = conn_ctx
-        with conn.cursor() as cur:
-            cur.execute("CALL tick()")
-        conn.commit()
-        logging.info("tick() executed successfully")
-        return 0
+        with db_util.connect(args.dsn) as conn:
+            try:
+                with conn.cursor() as cur:
+                    cur.execute("CALL tick()")
+                conn.commit()
+            except Exception:  # pragma: no cover - simple CLI logging
+                logging.exception("tick() execution failed")
+                conn.rollback()
+                return 1
     except Exception:  # pragma: no cover - simple CLI logging
         logging.exception("tick() execution failed")
-        if conn:
-            conn.rollback()
         return 1
-    finally:
-        if conn:
-            conn.close()
-        if conn_ctx is not conn and hasattr(conn_ctx, "__exit__"):
-            conn_ctx.__exit__(None, None, None)
+    logging.info("tick() executed successfully")
+    return 0
 
 
 if __name__ == "__main__":
