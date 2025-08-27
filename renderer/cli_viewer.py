@@ -12,14 +12,20 @@ configuration file referenced via the ``PGTTD_CONFIG`` environment variable.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import os
+import sys
 import time
 from dataclasses import dataclass
-from typing import Dict, Iterable, Tuple
+from pathlib import Path
+from typing import Dict, Iterable
 
 import curses
 import psycopg
+
+sys.path.append(str(Path(__file__).resolve().parents[1] / "scripts"))
+import db_util
 
 # ---------------------------------------------------------------------------
 # Database helpers
@@ -124,11 +130,14 @@ def render(stdscr, tiles: Iterable[Tile]) -> None:
 # ---------------------------------------------------------------------------
 
 
-def main(stdscr) -> None:
+def main(stdscr, dsn: str | None = None) -> None:
     curses.curs_set(0)
     stdscr.nodelay(True)
-    config = load_config()
-    conn = psycopg.connect(**config)
+    if dsn:
+        conn = db_util.connect(dsn)
+    else:
+        config = load_config()
+        conn = psycopg.connect(**config)
     try:
         while True:
             tiles = list(fetch_tiles(conn))
@@ -142,4 +151,10 @@ def main(stdscr) -> None:
 
 
 if __name__ == "__main__":
-    curses.wrapper(main)
+    parser = argparse.ArgumentParser(description=__doc__)
+    try:
+        args = db_util.parse_dsn(parser)
+        dsn = args.dsn
+    except RuntimeError:
+        dsn = None
+    curses.wrapper(main, dsn)

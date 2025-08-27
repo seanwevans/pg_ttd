@@ -6,10 +6,9 @@ PostgreSQL database.
 """
 
 import argparse
-import os
 import time
 
-import psycopg
+import db_util
 
 
 def main() -> None:
@@ -20,18 +19,9 @@ def main() -> None:
         default=100000,
         help="Number of vehicles to insert",
     )
-    parser.add_argument(
-        "--dsn",
-        type=str,
-        default=os.environ.get("DATABASE_URL"),
-        help="PostgreSQL DSN",
-    )
-    args = parser.parse_args()
+    args = db_util.parse_dsn(parser)
 
-    if not args.dsn:
-        raise RuntimeError("DATABASE_URL environment variable or --dsn is required")
-
-    with psycopg.connect(args.dsn) as conn:
+    with db_util.connect(args.dsn) as conn:
         with conn.cursor() as cur:
             cur.execute("TRUNCATE vehicles")
             cur.execute(
