@@ -27,3 +27,13 @@ variable and run:
 ```bash
 python scripts/run_tick.py
 ```
+
+## `economy_tick()`
+Runs the simplified economic simulation. Resource amounts are adjusted by
+`resource_rules` and any `resource_industries` consume input resources to
+produce outputs.
+
+Usage:
+```sql
+SELECT economy_tick();
+```
