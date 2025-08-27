@@ -1,8 +1,7 @@
 # Pathfinding
 
-The current implementation uses stub functions defined in `sql/procs/pathfinding.sql`.
-These functions return empty paths and are placeholders for a future algorithm.
-
-The intended implementation will use Dijkstra or A* to compute optimal routes
-between coordinates. Once implemented, vehicle movement procedures will be able
-to call `find_route` to obtain a valid path.
+`find_route` in `sql/procs/pathfinding.sql` provides a basic A* search across a
+grid using Manhattan distance. The function returns an array of coordinates from
+the start location to the destination. While it currently ignores obstacles and
+terrain costs, it establishes a foundation that can be extended with richer
+world data.
