@@ -131,7 +131,10 @@ def render(stdscr, tiles: Iterable[Tile]) -> None:
 # Entry point
 # ---------------------------------------------------------------------------
 
-def main(stdscr, dsn: str | None = None) -> None:
+
+def main(stdscr, dsn: str | None, refresh: float, step: bool) -> None:
+    """Render the simulation in a curses window."""
+
     curses.curs_set(0)
     stdscr.nodelay(True)
     if dsn:
@@ -146,21 +149,33 @@ def main(stdscr, dsn: str | None = None) -> None:
             ch = stdscr.getch()
             if ch == ord("q"):
                 break
-            if args.step:
+            if step:
                 if ch == ord("t"):
                     advance_tick(conn)
             else:
                 advance_tick(conn)
-            time.sleep(args.refresh)
+            time.sleep(refresh)
     finally:
         conn.close()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--refresh",
+        type=float,
+        default=0.5,
+        help="delay between screen updates in seconds",
+    )
+    parser.add_argument(
+        "--step",
+        action="store_true",
+        help="advance simulation only when 't' is pressed",
+    )
     try:
         args = db_util.parse_dsn(parser)
         dsn = args.dsn
     except RuntimeError:
+        args = parser.parse_args()
         dsn = None
-    curses.wrapper(main, dsn)
+    curses.wrapper(main, dsn, args.refresh, args.step)
