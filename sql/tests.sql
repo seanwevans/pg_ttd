@@ -4,3 +4,6 @@
 \ir tests/economy_tick.sql
 \ir tests/move_vehicles.sql
 \ir tests/tick.sql
+\ir tests/vehicles.sql
+\ir tests/vehicle_movement.sql
+\ir tests/update_balances.sql
