@@ -6,6 +6,7 @@ PostgreSQL database.
 """
 
 import argparse
+import json
 import time
 
 import pgttd.db as db
@@ -23,14 +24,15 @@ def main() -> None:
     args = parser.parse_args()
     db.parse_dsn(args)
 
+    schedule = [{"x": 100, "y": 0}]
+
     with db.connect(args.dsn) as conn:
         with conn.cursor() as cur:
             cur.execute("TRUNCATE vehicles")
             cur.execute(
                 "INSERT INTO vehicles (x, y, schedule) "
-                'SELECT 0, 0, \'[{"x":100,"y":0}]\'::jsonb '
-                "FROM generate_series(1,%s)",
-                (args.count,),
+                "SELECT 0, 0, %s::jsonb FROM generate_series(1, %s)",
+                (json.dumps(schedule), args.count),
             )
             conn.commit()
 
