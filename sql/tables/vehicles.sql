@@ -13,5 +13,5 @@ CREATE TABLE IF NOT EXISTS vehicles (
         AND schedule_idx < GREATEST(JSONB_ARRAY_LENGTH(schedule), 1)
     ),
     cargo JSONB NOT NULL DEFAULT '[]'::JSONB,
-    company_id INTEGER
+    company_id INTEGER REFERENCES companies (id)
 );

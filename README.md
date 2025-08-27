@@ -18,6 +18,17 @@ Scripts such as `scripts/run_tick.py` and `scripts/create_vehicle.py` expect a
 PostgreSQL connection string via the `--dsn` option or the `DATABASE_URL`
 environment variable.
 
+## Schema
+
+Individual table definitions live in `sql/tables/`. Run the generator to
+combine them into `sql/schema.sql` before applying the schema:
+
+```bash
+make generate-schema
+```
+
+Edit the per-table files rather than `schema.sql` to avoid divergence.
+
 ## Stored procedures
 
 Documentation for the SQL procedures lives in [docs/procs.md](docs/procs.md). Notable
