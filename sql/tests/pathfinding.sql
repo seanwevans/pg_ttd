@@ -21,7 +21,7 @@ UPDATE terrain SET type = 'water' WHERE tile_x = 2 AND tile_y = 1;
 DO $$
 DECLARE
     res integer[][];
-    expected integer[][] := ARRAY[[1,1],[1,2],[2,2],[3,2]];
+    expected integer[][] := ARRAY[ARRAY[1,1], ARRAY[1,2], ARRAY[2,2], ARRAY[3,2]];
 BEGIN
     res := find_route(1,1,3,2);
     IF res IS NULL OR res != expected THEN
@@ -33,9 +33,9 @@ END$$;
 DO $$
 DECLARE
     res integer[][];
-    expected integer[][] := ARRAY[[1,1],[1,2],[2,2],[3,2]];
+    expected integer[][] := ARRAY[ARRAY[1,1], ARRAY[1,2], ARRAY[2,2], ARRAY[3,2]];
 BEGIN
-    res := find_route(1,1,3,2, ARRAY[[1,2,5]]);
+    res := find_route(1,1,3,2, ARRAY[ARRAY[1,2,5]]);
     IF res IS NULL OR res != expected THEN
         RAISE EXCEPTION 'weighted route mismatch: %', res;
     END IF;
@@ -45,7 +45,7 @@ END$$;
 DO $$
 DECLARE
     res integer[][];
-    expected integer[][] := ARRAY[[2,2]];
+    expected integer[][] := ARRAY[ARRAY[2,2]];
 BEGIN
     res := find_route(2,2,2,2);
     IF res IS NULL OR res != expected THEN
