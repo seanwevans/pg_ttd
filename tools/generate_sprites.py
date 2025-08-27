@@ -35,11 +35,10 @@ def quote_sql(value: Any) -> str:
 
 def insert_statement(name: str, b64: str) -> str:
     """Return an INSERT statement for the sprites table."""
-    return (
-        "INSERT INTO sprites(name, image_base64) VALUES ({name}, {b64});".format(
-            name=quote_sql(name), b64=quote_sql(b64)
-        )
+    return "INSERT INTO sprites(name, image_base64) VALUES ({name}, {b64});".format(
+        name=quote_sql(name), b64=quote_sql(b64)
     )
+
 
 # Basic palette of sprite colors.
 PALETTE: Dict[str, Tuple[int, int, int]] = {
@@ -78,7 +77,12 @@ def _png_from_palette_stdlib(color: Tuple[int, int, int]) -> bytes:
     ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
     raw_data = bytes([0, r, g, b])  # no filter + RGB pixel
     idat = zlib.compress(raw_data)
-    return png_signature + chunk(b"IHDR", ihdr) + chunk(b"IDAT", idat) + chunk(b"IEND", b"")
+    return (
+        png_signature
+        + chunk(b"IHDR", ihdr)
+        + chunk(b"IDAT", idat)
+        + chunk(b"IEND", b"")
+    )
 
 
 def generate_palette() -> Dict[str, str]:

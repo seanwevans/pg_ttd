@@ -82,7 +82,7 @@ def advance_tick(conn) -> None:
     """Advance the simulation by calling the `tick` stored procedure."""
     with conn.cursor() as cur:
         try:
-            cur.execute("CALL tick()");
+            cur.execute("CALL tick()")
             conn.commit()
         except Exception:
             conn.rollback()

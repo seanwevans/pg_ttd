@@ -6,4 +6,4 @@ SELECT
     income,
     expenses
 FROM companies
-WHERE id = :id;
+WHERE id =: id;

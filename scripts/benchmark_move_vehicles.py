@@ -4,6 +4,7 @@ The script inserts a configurable number of vehicles and measures the
 execution time of ``CALL move_vehicles()``. It requires a running
 PostgreSQL database.
 """
+
 import argparse
 import os
 import time
@@ -35,7 +36,7 @@ def main() -> None:
             cur.execute("TRUNCATE vehicles")
             cur.execute(
                 "INSERT INTO vehicles (x, y, schedule) "
-                "SELECT 0, 0, '[{\"x\":100,\"y\":0}]'::jsonb "
+                'SELECT 0, 0, \'[{"x":100,"y":0}]\'::jsonb '
                 "FROM generate_series(1,%s)",
                 (args.count,),
             )

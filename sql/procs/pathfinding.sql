@@ -1,9 +1,11 @@
 -- Pathfinding utilities
 -- Implements a simple A* search over a grid using Manhattan distance.
 
-CREATE OR REPLACE FUNCTION find_route(start_x integer, start_y integer,
-                                      end_x integer, end_y integer)
-RETURNS integer[][] AS $$
+CREATE OR REPLACE FUNCTION find_route(
+    start_x integer, start_y integer,
+    end_x integer, end_y integer
+)
+RETURNS integer [] [] AS $$
 DECLARE
     cur_x integer;
     cur_y integer;
@@ -90,4 +92,3 @@ BEGIN
     RETURN path;
 END;
 $$ LANGUAGE plpgsql;
-
