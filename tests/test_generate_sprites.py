@@ -1,9 +1,11 @@
 import base64
+import sqlite3
 import sys
 from pathlib import Path
-import sqlite3
 
-from tools import generate_sprites as module
+from tools import generate_sprites
+
+module = generate_sprites
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 EXPECTED_RED = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC"
