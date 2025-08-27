@@ -29,6 +29,13 @@ make generate-schema
 
 Edit the per-table files rather than `schema.sql` to avoid divergence.
 
+## Stored procedures
+
+Documentation for the SQL procedures lives in [docs/procs.md](docs/procs.md). Notable
+entries include [`economy_tick()`](docs/procs.md#economy_tick) for economic updates
+and [`move_vehicles()`](docs/procs.md#move_vehicles) which advances vehicles along
+their routes.
+
 ## Renderer
 
 A tiny curses-based renderer is included to visualise the map stored in
@@ -39,13 +46,17 @@ PostgreSQL and advance the simulation.
 1. Ensure the database is populated with the required schema.
 2. Provide connection parameters using the standard `PGHOST`, `PGPORT`,
    `PGDATABASE`, `PGUSER` and `PGPASSWORD` environment variables **or** create a
-   JSON configuration file and reference it with `PGTTD_CONFIG`.
+   JSON configuration file and reference it with `PGTTD_CONFIG`. A PostgreSQL
+   DSN may also be supplied via the `--dsn` option (overriding any environment
+   variables).
 3. Run the viewer:
 
    ```bash
-   python renderer/cli_viewer.py
+   python renderer/cli_viewer.py [--dsn DSN] [--refresh SECONDS] [--step]
    ```
 
-Press `q` to quit. Each refresh calls `tick()` in the database to advance the
-world state.
+Press `q` to quit. By default each refresh (every 0.5 seconds) calls `tick()` in
+the database to advance the world state. When `--step` is supplied the simulation
+advances only when `t` is pressed. The `--refresh` option controls the delay
+between screen updates.
 

@@ -37,3 +37,29 @@ Usage:
 ```sql
 SELECT economy_tick();
 ```
+
+For a self-contained example see
+[`sql/tests/economy_tick.sql`](../sql/tests/economy_tick.sql). That test seeds the
+`resources`, `resource_rules` and `resource_industries` tables then invokes
+`economy_tick()`. After the call, the wood resource drops from `10` to `9` while
+goods increase from `0` to `1`, demonstrating both growth rules and industry
+production.
+
+The procedure is defined in
+[`sql/procs/economy_tick.sql`](../sql/procs/economy_tick.sql).
+
+## `move_vehicles()`
+Advances every vehicle one tile toward its current scheduled waypoint. When a
+vehicle reaches its target, the `schedule_idx` wraps to the next waypoint in its
+`schedule`.
+
+Usage:
+```sql
+CALL move_vehicles();
+```
+
+Each call updates the `x`, `y` and `schedule_idx` columns of every row in the
+`vehicles` table. The implementation lives in
+[`sql/procs/move_vehicles.sql`](../sql/procs/move_vehicles.sql). The script
+[`scripts/benchmark_move_vehicles.py`](../scripts/benchmark_move_vehicles.py)
+populates test data and measures the performance of this procedure.
