@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from typing import Dict, Iterable, Tuple
 
 import curses
-import psycopg2
+import psycopg
 
 # ---------------------------------------------------------------------------
 # Database helpers
@@ -82,7 +82,7 @@ def advance_tick(conn) -> None:
     """Advance the simulation by calling the `tick` stored procedure."""
     with conn.cursor() as cur:
         try:
-            cur.execute("SELECT tick()");
+            cur.execute("CALL tick()");
             conn.commit()
         except Exception:
             conn.rollback()
@@ -128,7 +128,7 @@ def main(stdscr) -> None:
     curses.curs_set(0)
     stdscr.nodelay(True)
     config = load_config()
-    conn = psycopg2.connect(**config)
+    conn = psycopg.connect(**config)
     try:
         while True:
             tiles = list(fetch_tiles(conn))

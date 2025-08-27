@@ -9,7 +9,7 @@ import argparse
 import json
 import os
 
-import psycopg2
+import psycopg
 
 
 def main() -> None:
@@ -32,17 +32,19 @@ def main() -> None:
     parser.add_argument(
         "--dsn",
         type=str,
-        default=os.environ.get("PG_DSN", ""),
-        help="PostgreSQL DSN string",
+        default=os.environ.get("DATABASE_URL", ""),
+        help="PostgreSQL DSN; defaults to DATABASE_URL env var",
     )
 
     args = parser.parse_args()
 
+    if not args.dsn:
+        raise RuntimeError("Database DSN must be provided via --dsn or DATABASE_URL")
+
     schedule = json.loads(args.schedule)
     cargo = json.loads(args.cargo)
 
-    conn = psycopg2.connect(args.dsn)
-    with conn:
+    with psycopg.connect(args.dsn) as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
@@ -51,6 +53,7 @@ def main() -> None:
                 """,
                 (args.x, args.y, json.dumps(schedule), json.dumps(cargo), args.company_id),
             )
+        conn.commit()
     print("Inserted vehicle at", args.x, args.y)
 
 

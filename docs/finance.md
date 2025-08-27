@@ -6,6 +6,10 @@ Companies maintain basic accounting fields to track their financial state:
 - `income` – earnings generated in the current tick.
 - `expenses` – money spent in the current tick.
 
+Industry production and vehicle activity are recorded in the `industry_outputs`
+and `vehicle_operations` tables respectively. Each row in these tables captures
+the results for a single company during the current tick.
+
 The `update_balances()` procedure runs every tick to apply results of industry
 production and vehicle operations:
 
