@@ -12,7 +12,9 @@ BEGIN
             jsonb_array_length(schedule) AS sched_len,
             CASE
                 WHEN jsonb_array_length(schedule) = 0 THEN NULL
-                WHEN schedule_idx >= jsonb_array_length(schedule) OR schedule_idx < 0 THEN 0
+                WHEN schedule_idx IS NULL
+                     OR schedule_idx >= jsonb_array_length(schedule)
+                     OR schedule_idx < 0 THEN 0
                 ELSE schedule_idx
             END AS idx
         FROM vehicles

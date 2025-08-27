@@ -91,7 +91,7 @@ def test_main_success(monkeypatch, capsys):
     assert f"Inserted vehicle at 1 2" in capsys.readouterr().out
 
 
-def test_invalid_schedule_json(monkeypatch):
+def test_invalid_schedule_json(monkeypatch, capsys):
     connect_mock = MagicMock()
     monkeypatch.setattr(db, "connect", connect_mock)
     monkeypatch.setattr(
@@ -100,7 +100,9 @@ def test_invalid_schedule_json(monkeypatch):
         ["create_vehicle.py", "--dsn", DSN, "--schedule", "not json"],
     )
 
-    with pytest.raises(ValueError, match="Invalid JSON for --schedule"):
+    with pytest.raises(SystemExit) as exc:
         create_vehicle.main()
+    assert exc.value.code == 1
+    assert "Invalid JSON for --schedule" in capsys.readouterr().err
 
     connect_mock.assert_not_called()
