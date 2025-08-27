@@ -1,15 +1,10 @@
-import sys
-from pathlib import Path
 import json
+import sys
 from unittest.mock import MagicMock
 
 import pytest
 
-# Ensure scripts directory is on the path
-sys.path.append(str(Path(__file__).resolve().parents[1] / "scripts"))
-
-import create_vehicle  # type: ignore
-import db_util  # type: ignore
+from pgttd import create_vehicle, db
 
 
 class DummyCursor:
@@ -59,7 +54,7 @@ def test_main_success(monkeypatch, capsys):
         assert dsn == DSN
         return conn
 
-    monkeypatch.setattr(db_util, "connect", fake_connect)
+    monkeypatch.setattr(db, "connect", fake_connect)
     monkeypatch.setattr(
         sys,
         "argv",
@@ -72,9 +67,9 @@ def test_main_success(monkeypatch, capsys):
             "--y",
             "2",
             "--schedule",
-            "[{\"x\":1,\"y\":2}]",
+            '[{"x":1,"y":2}]',
             "--cargo",
-            "[{\"resource\":\"wood\",\"amount\":3}]",
+            '[{"resource":"wood","amount":3}]',
             "--company-id",
             "7",
         ],
@@ -98,7 +93,7 @@ def test_main_success(monkeypatch, capsys):
 
 def test_invalid_schedule_json(monkeypatch):
     connect_mock = MagicMock()
-    monkeypatch.setattr(db_util, "connect", connect_mock)
+    monkeypatch.setattr(db, "connect", connect_mock)
     monkeypatch.setattr(
         sys,
         "argv",
