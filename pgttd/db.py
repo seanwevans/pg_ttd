@@ -5,7 +5,11 @@ import psycopg
 
 
 def parse_dsn(parser: argparse.ArgumentParser) -> argparse.Namespace:
-    """Add a standard DSN argument to ``parser`` and return parsed args."""
+    """Add a standard DSN argument to ``parser`` and return parsed args.
+
+    The ``--dsn`` option defaults to the ``DATABASE_URL`` environment
+    variable. A ``RuntimeError`` is raised if no DSN can be determined.
+    """
     parser.add_argument(
         "--dsn",
         type=str,

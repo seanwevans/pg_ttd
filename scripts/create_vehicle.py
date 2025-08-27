@@ -9,7 +9,7 @@ import argparse
 import json
 import sys
 
-import db_util
+import pgttd.db as db
 
 
 def main() -> None:
@@ -29,7 +29,7 @@ def main() -> None:
         default="[]",
         help="JSON description of cargo",
     )
-    args = db_util.parse_dsn(parser)
+    args = db.parse_dsn(parser)
 
     try:
         try:
@@ -69,26 +69,41 @@ def main() -> None:
             if not isinstance(item["amount"], int):
                 raise ValueError(f"Cargo entry {idx} key 'amount' must be an integer")
 
-        with db_util.connect(args.dsn) as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    INSERT INTO vehicles (x, y, schedule, cargo, company_id)
-                    VALUES (%s, %s, %s::jsonb, %s::jsonb, %s)
-                    """,
-                    (
-                        args.x,
-                        args.y,
-                        json.dumps(schedule),
-                        json.dumps(cargo),
-                        args.company_id,
-                    ),
-                )
-            conn.commit()
-        print("Inserted vehicle at", args.x, args.y)
-    except ValueError as e:
-        print(e, file=sys.stderr)
-        sys.exit(1)
+
+    if not isinstance(cargo, list):
+        raise ValueError("--cargo must be a JSON array")
+    for idx, item in enumerate(cargo):
+        if not isinstance(item, dict):
+            raise ValueError(f"Cargo entry {idx} must be an object")
+        if "resource" not in item or "amount" not in item:
+            raise ValueError(
+                f"Cargo entry {idx} must contain 'resource' and 'amount' keys"
+            )
+        if not isinstance(item["resource"], str):
+            raise ValueError(f"Cargo entry {idx} key 'resource' must be a string")
+        if not isinstance(item["amount"], int):
+            raise ValueError(
+                f"Cargo entry {idx} key 'amount' must be an integer"
+            )
+
+    with db.connect(args.dsn) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO vehicles (x, y, schedule, cargo, company_id)
+                VALUES (%s, %s, %s::jsonb, %s::jsonb, %s)
+                """,
+                (
+                    args.x,
+                    args.y,
+                    json.dumps(schedule),
+                    json.dumps(cargo),
+                    args.company_id,
+                ),
+            )
+        conn.commit()
+    print("Inserted vehicle at", args.x, args.y)
+
 
 
 if __name__ == "__main__":

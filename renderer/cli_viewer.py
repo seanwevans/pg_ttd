@@ -17,18 +17,15 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import sys
 import time
 import logging
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Dict, Iterable
 
 import curses
 import psycopg
 
-sys.path.append(str(Path(__file__).resolve().parents[1] / "scripts"))
-import db_util
+import pgttd.db as db
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +140,7 @@ def main(stdscr, dsn: str | None, refresh: float, step: bool) -> None:
     curses.curs_set(0)
     stdscr.nodelay(True)
     if dsn:
-        conn = db_util.connect(dsn)
+        conn = db.connect(dsn)
     else:
         config = load_config()
         conn = psycopg.connect(**config)
@@ -180,7 +177,7 @@ if __name__ == "__main__":
         help="advance simulation only when 't' is pressed",
     )
     try:
-        args = db_util.parse_dsn(parser)
+        args = db.parse_dsn(parser)
         dsn = args.dsn
     except RuntimeError:
         args = parser.parse_args()

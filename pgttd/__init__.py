@@ -1,5 +1,5 @@
-"""Core package for pgttd utilities."""
+"""Top-level package for pg_ttd utilities."""
 
-from . import db, create_vehicle, run_tick, generate_sprites
+from .db import parse_dsn, connect
 
-__all__ = ["db", "create_vehicle", "run_tick", "generate_sprites"]
+__all__ = ["parse_dsn", "connect"]

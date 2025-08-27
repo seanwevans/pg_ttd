@@ -1,11 +1,11 @@
-import sys
 import contextlib
+import sys
 from types import SimpleNamespace
 from unittest import mock
 
 import pytest
 
-from pgttd import run_tick, db
+from scripts import run_tick
 
 DSN = "postgresql://example"
 
@@ -61,7 +61,7 @@ def test_main_success(monkeypatch):
         assert dsn == DSN
         return conn
 
-    monkeypatch.setattr(db, "connect", fake_connect)
+    monkeypatch.setattr(run_tick.db, "connect", fake_connect)
     monkeypatch.setattr(sys, "argv", ["run_tick.py", "--dsn", DSN])
 
     rc = run_tick.main()
@@ -77,7 +77,7 @@ def test_main_failure(monkeypatch):
     cursor = DummyCursor(should_fail=True)
     conn = DummyConnection(cursor)
 
-    monkeypatch.setattr(db, "connect", lambda dsn: conn)
+    monkeypatch.setattr(run_tick.db, "connect", lambda dsn: conn)
     monkeypatch.setattr(sys, "argv", ["run_tick.py", "--dsn", DSN])
 
     rc = run_tick.main()

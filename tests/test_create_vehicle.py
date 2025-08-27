@@ -4,7 +4,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from pgttd import create_vehicle, db
+from scripts import create_vehicle
+
+DSN = "postgresql://example"
 
 
 class DummyCursor:
@@ -43,9 +45,6 @@ class DummyConnection:
         self.close()
 
 
-DSN = "postgresql://example"
-
-
 def test_main_success(monkeypatch, capsys):
     cursor = DummyCursor()
     conn = DummyConnection(cursor)
@@ -54,7 +53,8 @@ def test_main_success(monkeypatch, capsys):
         assert dsn == DSN
         return conn
 
-    monkeypatch.setattr(db, "connect", fake_connect)
+    monkeypatch.setattr(create_vehicle.db, "connect", fake_connect)
+
     monkeypatch.setattr(
         sys,
         "argv",
@@ -93,7 +93,7 @@ def test_main_success(monkeypatch, capsys):
 
 def test_invalid_schedule_json(monkeypatch, capsys):
     connect_mock = MagicMock()
-    monkeypatch.setattr(db, "connect", connect_mock)
+    monkeypatch.setattr(create_vehicle.db, "connect", connect_mock)
     monkeypatch.setattr(
         sys,
         "argv",
