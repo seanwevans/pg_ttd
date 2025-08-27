@@ -44,3 +44,21 @@ def test_insert_statement_is_escaped(tmp_path):
 
     rows = conn.execute("SELECT name, image_base64 FROM sprites").fetchall()
     assert rows == [(malicious_name, payload)]
+
+
+def test_quote_sql_handles_various_types():
+    assert module.quote_sql("O'Reilly") == "'O''Reilly'"
+    assert module.quote_sql(42) == "'42'"
+    assert module.quote_sql(Path("a'b")) == "'a''b'"
+
+
+def test_main_writes_expected_file(tmp_path, monkeypatch, capsys):
+    out = tmp_path / "out.sql"
+
+    monkeypatch.setattr(module, "generate_palette", lambda: {"red": "data"})
+    monkeypatch.setattr(sys, "argv", ["generate_sprites.py", "--output", str(out)])
+
+    module.main()
+
+    assert out.read_text() == module.insert_statement("red", "data") + "\n"
+    assert f"Wrote 1 sprites to {out}" in capsys.readouterr().out
