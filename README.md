@@ -60,3 +60,7 @@ the database to advance the world state. When `--step` is supplied the simulatio
 advances only when `t` is pressed. The `--refresh` option controls the delay
 between screen updates.
 
+## License
+
+Licensed under the [MIT License](LICENSE).
+
