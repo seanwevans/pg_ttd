@@ -3,7 +3,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from tools import generate_sprites
+import tools.generate_sprites as generate_sprites
 
 module = generate_sprites
 
