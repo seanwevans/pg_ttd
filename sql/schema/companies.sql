@@ -1,6 +1,6 @@
 -- Companies table with accounting fields
 CREATE TABLE IF NOT EXISTS companies (
-    company_id SERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     cash BIGINT NOT NULL DEFAULT 0,
     income BIGINT NOT NULL DEFAULT 0,

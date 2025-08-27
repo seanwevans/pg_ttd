@@ -15,7 +15,7 @@ BEGIN
         FROM industry_outputs
         GROUP BY company_id
     ) io
-    WHERE io.company_id = c.company_id;
+    WHERE io.company_id = c.id;
 
     -- Apply vehicle operations
     UPDATE companies c
@@ -30,6 +30,6 @@ BEGIN
         FROM vehicle_operations
         GROUP BY company_id
     ) vo
-    WHERE vo.company_id = c.company_id;
+    WHERE vo.company_id = c.id;
 END;
 $$ LANGUAGE plpgsql;
