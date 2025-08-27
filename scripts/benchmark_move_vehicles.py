@@ -13,13 +13,15 @@ import pgttd.db as db
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Benchmark move_vehicles")
+    db.add_dsn_argument(parser)
     parser.add_argument(
         "--count",
         type=int,
         default=100000,
         help="Number of vehicles to insert",
     )
-    args = db.parse_dsn(parser)
+    args = parser.parse_args()
+    db.parse_dsn(args)
 
     with db.connect(args.dsn) as conn:
         with conn.cursor() as cur:
