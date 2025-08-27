@@ -20,7 +20,7 @@ def main() -> None:
         "--schedule",
         type=str,
         default="[]",
-        help="JSON array of waypoints, e.g. '[{\"x\":0,\"y\":0},{\"x\":5,\"y\":5}]'",
+        help='JSON array of waypoints, e.g. \'[{"x":0,"y":0},{"x":5,"y":5}]\'',
     )
     parser.add_argument("--company-id", type=int, default=None)
     parser.add_argument(
@@ -51,7 +51,13 @@ def main() -> None:
                 INSERT INTO vehicles (x, y, schedule, cargo, company_id)
                 VALUES (%s, %s, %s::jsonb, %s::jsonb, %s)
                 """,
-                (args.x, args.y, json.dumps(schedule), json.dumps(cargo), args.company_id),
+                (
+                    args.x,
+                    args.y,
+                    json.dumps(schedule),
+                    json.dumps(cargo),
+                    args.company_id,
+                ),
             )
         conn.commit()
     print("Inserted vehicle at", args.x, args.y)

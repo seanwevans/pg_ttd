@@ -5,4 +5,3 @@ CREATE TABLE IF NOT EXISTS vehicle_operations (
     revenue INTEGER NOT NULL,
     cost INTEGER NOT NULL
 );
-

@@ -4,4 +4,3 @@ CREATE TABLE IF NOT EXISTS industry_outputs (
     company_id INTEGER NOT NULL,
     value INTEGER NOT NULL
 );
-

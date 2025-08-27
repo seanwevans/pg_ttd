@@ -1,4 +1,5 @@
 """Wrapper script to advance the game tick."""
+
 import argparse
 import os
 
