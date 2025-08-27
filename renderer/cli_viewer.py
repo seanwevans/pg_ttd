@@ -9,9 +9,12 @@ called to advance the simulation.
 Connection information is read from standard PostgreSQL environment variables
 (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`) or from a JSON
 configuration file referenced via the ``PGTTD_CONFIG`` environment variable.
+Command line arguments can override these settings and also provide a DSN
+connection string.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import time
@@ -124,22 +127,52 @@ def render(stdscr, tiles: Iterable[Tile]) -> None:
 # ---------------------------------------------------------------------------
 
 
-def main(stdscr) -> None:
+def parse_args():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--dsn",
+        help="PostgreSQL DSN. Overrides environment variables and config files.",
+    )
+    parser.add_argument(
+        "--refresh",
+        type=float,
+        default=float(os.environ.get("PGTTD_REFRESH", 0.5)),
+        help="Refresh interval in seconds (default: %(default)s).",
+    )
+    parser.add_argument(
+        "--step",
+        action="store_true",
+        help="Only advance simulation when 't' is pressed.",
+    )
+    return parser.parse_args()
+
+
+def main(stdscr, args) -> None:
     curses.curs_set(0)
     stdscr.nodelay(True)
-    config = load_config()
-    conn = psycopg.connect(**config)
+    dsn = args.dsn or os.environ.get("DATABASE_URL")
+    if dsn:
+        conn = psycopg.connect(dsn)
+    else:
+        config = load_config()
+        conn = psycopg.connect(**config)
     try:
         while True:
             tiles = list(fetch_tiles(conn))
             render(stdscr, tiles)
-            advance_tick(conn)
-            time.sleep(0.5)
-            if stdscr.getch() == ord("q"):
+            ch = stdscr.getch()
+            if ch == ord("q"):
                 break
+            if args.step:
+                if ch == ord("t"):
+                    advance_tick(conn)
+            else:
+                advance_tick(conn)
+            time.sleep(args.refresh)
     finally:
         conn.close()
 
 
 if __name__ == "__main__":
-    curses.wrapper(main)
+    args = parse_args()
+    curses.wrapper(main, args)
