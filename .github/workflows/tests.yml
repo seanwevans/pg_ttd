@@ -9,6 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: postgres
 
     steps:
     - uses: actions/checkout@v3
@@ -30,13 +32,16 @@ jobs:
         sudo apt-get install -y postgresql postgresql-16-plpgsql-check
         sudo pg_ctlcluster 16 main start
     - name: Run SQL tests and collect coverage
+      env:
+        PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
       run: |
         sudo -u postgres psql -c "CREATE EXTENSION IF NOT EXISTS plpgsql_check" postgres
+        sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$PGPASSWORD'" postgres
         export PGOPTIONS='-c plpgsql_check.profiler=on'
         for f in sql/tests/*.sql; do
           sudo -u postgres psql -v ON_ERROR_STOP=1 -f "$f" postgres
         done
-        python scripts/postgres_coverage.py --dsn "postgresql://postgres@localhost/postgres"
+        python scripts/postgres_coverage.py --dsn "postgresql://postgres:${PGPASSWORD}@localhost/postgres"
     - name: Upload Postgres coverage
       uses: actions/upload-artifact@v4
       with:
