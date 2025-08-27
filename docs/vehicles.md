@@ -15,5 +15,8 @@ their `schedule` JSON column. Each waypoint is an object of the form
 
 The procedure ignores vehicles with an empty schedule.
 
+For route-based movement a vehicle tracks progress with `next_waypoint_idx`,
+which stores the next step within the current path returned by `find_route`.
+
 Benchmarking with 100k vehicles on PostgreSQL 16 reduced execution time from
 roughly 2.0s with a row-by-row loop to about 1.5s using the set-based query.
