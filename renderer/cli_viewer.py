@@ -9,6 +9,8 @@ called to advance the simulation.
 Connection information is read from standard PostgreSQL environment variables
 (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`) or from a JSON
 configuration file referenced via the ``PGTTD_CONFIG`` environment variable.
+Command line arguments can override these settings and also provide a DSN
+connection string.
 """
 from __future__ import annotations
 
@@ -129,7 +131,6 @@ def render(stdscr, tiles: Iterable[Tile]) -> None:
 # Entry point
 # ---------------------------------------------------------------------------
 
-
 def main(stdscr, dsn: str | None = None) -> None:
     curses.curs_set(0)
     stdscr.nodelay(True)
@@ -142,10 +143,15 @@ def main(stdscr, dsn: str | None = None) -> None:
         while True:
             tiles = list(fetch_tiles(conn))
             render(stdscr, tiles)
-            advance_tick(conn)
-            time.sleep(0.5)
-            if stdscr.getch() == ord("q"):
+            ch = stdscr.getch()
+            if ch == ord("q"):
                 break
+            if args.step:
+                if ch == ord("t"):
+                    advance_tick(conn)
+            else:
+                advance_tick(conn)
+            time.sleep(args.refresh)
     finally:
         conn.close()
 

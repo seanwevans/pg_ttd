@@ -2,6 +2,10 @@
 
 The schema defines core tables for representing the game world and simulation state.
 
+Per-table SQL files are stored in `sql/tables/`. Use `make generate-schema` to
+rebuild the combined `sql/schema.sql` before loading the schema into a
+database.
+
 ## Tables
 
 ### `terrain`
