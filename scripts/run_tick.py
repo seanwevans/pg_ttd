@@ -2,7 +2,6 @@
 
 import argparse
 import logging
-import os
 import sys
 
 import db_util
@@ -13,7 +12,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Advance the game tick")
     args = db_util.parse_dsn(parser)
 
-    with db_util.connect(args.dsn) as conn:
+    conn = None
+    try:
+        conn = db_util.connect(args.dsn)
         with conn.cursor() as cur:
             cur.execute("CALL tick()")
         conn.commit()
@@ -31,3 +32,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
