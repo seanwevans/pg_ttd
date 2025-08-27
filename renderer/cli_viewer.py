@@ -19,6 +19,7 @@ import json
 import os
 import sys
 import time
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable
@@ -28,6 +29,8 @@ import psycopg
 
 sys.path.append(str(Path(__file__).resolve().parents[1] / "scripts"))
 import db_util
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Database helpers
@@ -94,6 +97,8 @@ def advance_tick(conn) -> None:
             conn.commit()
         except Exception:
             conn.rollback()
+            logger.exception("Failed to advance simulation tick")
+            raise
 
 
 # ---------------------------------------------------------------------------
@@ -149,17 +154,19 @@ def main(stdscr, dsn: str | None, refresh: float, step: bool) -> None:
             ch = stdscr.getch()
             if ch == ord("q"):
                 break
-            if step:
-                if ch == ord("t"):
+            if not step or ch == ord("t"):
+                try:
                     advance_tick(conn)
-            else:
-                advance_tick(conn)
+                except Exception:
+                    logger.error("Tick advancement failed; exiting viewer")
+                    break
             time.sleep(refresh)
     finally:
         conn.close()
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--refresh",
