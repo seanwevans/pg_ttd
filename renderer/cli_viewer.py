@@ -82,7 +82,7 @@ def fetch_tiles(conn) -> Iterable[Tile]:
     )
     with conn.cursor() as cur:
         cur.execute(sql)
-        for x, y, ch, color in cur.fetchall():
+        for x, y, ch, color in cur:
             yield Tile(x, y, ch, color or "white")
 
 
@@ -146,7 +146,7 @@ def main(stdscr, dsn: str | None, refresh: float, step: bool) -> None:
         conn = psycopg.connect(**config)
     try:
         while True:
-            tiles = list(fetch_tiles(conn))
+            tiles = fetch_tiles(conn)
             render(stdscr, tiles)
             ch = stdscr.getch()
             if ch == ord("q"):

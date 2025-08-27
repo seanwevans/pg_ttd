@@ -48,7 +48,7 @@ def collect_coverage(dsn: str) -> List[Tuple[str, float, float]]:
         with conn.cursor() as cur:
             cur.execute("CREATE EXTENSION IF NOT EXISTS plpgsql_check")
             cur.execute(query)
-            rows = cur.fetchall()
+            rows = list(cur)
     return [(func, float(stmt), float(branch)) for func, stmt, branch in rows]
 
 
