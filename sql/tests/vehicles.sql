@@ -2,7 +2,8 @@
 
 BEGIN;
 
--- load table definition
+-- load table definitions
+\ir ../tables/companies.sql
 \ir ../tables/vehicles.sql
 
 -- negative position should fail
