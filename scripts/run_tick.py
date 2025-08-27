@@ -15,8 +15,13 @@ def main() -> int:
     args = db_util.parse_dsn(parser)
 
     conn = None
+    conn_ctx = None
     try:
-        conn = db_util.connect(args.dsn)
+        conn_ctx = db_util.connect(args.dsn)
+        if hasattr(conn_ctx, "__enter__"):
+            conn = conn_ctx.__enter__()
+        else:
+            conn = conn_ctx
         with conn.cursor() as cur:
             cur.execute("CALL tick()")
         conn.commit()
@@ -30,6 +35,8 @@ def main() -> int:
     finally:
         if conn:
             conn.close()
+        if conn_ctx is not conn and hasattr(conn_ctx, "__exit__"):
+            conn_ctx.__exit__(None, None, None)
 
 
 if __name__ == "__main__":
