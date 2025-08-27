@@ -2,52 +2,59 @@
 CREATE OR REPLACE PROCEDURE move_vehicles()
 LANGUAGE plpgsql
 AS $$
-DECLARE
-    v RECORD;
-    target JSONB;
-    target_x INTEGER;
-    target_y INTEGER;
-    new_x INTEGER;
-    new_y INTEGER;
-    new_idx INTEGER;
-    sched_len INTEGER;
 BEGIN
-    FOR v IN SELECT * FROM vehicles LOOP
-        sched_len := jsonb_array_length(v.schedule);
-        IF sched_len = 0 THEN
-            CONTINUE;
-        END IF;
-
-        IF v.schedule_idx >= sched_len OR v.schedule_idx < 0 THEN
-            new_idx := 0;
-        ELSE
-            new_idx := v.schedule_idx;
-        END IF;
-
-        target := v.schedule -> new_idx;
-        target_x := (target->>'x')::INTEGER;
-        target_y := (target->>'y')::INTEGER;
-
-        new_x := v.x;
-        new_y := v.y;
-
-        IF v.x < target_x THEN
-            new_x := v.x + 1;
-        ELSIF v.x > target_x THEN
-            new_x := v.x - 1;
-        ELSIF v.y < target_y THEN
-            new_y := v.y + 1;
-        ELSIF v.y > target_y THEN
-            new_y := v.y - 1;
-        ELSE
-            new_idx := (new_idx + 1) % sched_len;
-        END IF;
-
-        UPDATE vehicles
-        SET x = new_x,
-            y = new_y,
-            schedule_idx = new_idx
-        WHERE id = v.id;
-    END LOOP;
+    WITH v AS (
+        SELECT
+            id,
+            x,
+            y,
+            schedule,
+            jsonb_array_length(schedule) AS sched_len,
+            CASE
+                WHEN jsonb_array_length(schedule) = 0 THEN NULL
+                WHEN schedule_idx >= jsonb_array_length(schedule) OR schedule_idx < 0 THEN 0
+                ELSE schedule_idx
+            END AS idx
+        FROM vehicles
+    ),
+    targets AS (
+        SELECT
+            id,
+            x,
+            y,
+            sched_len,
+            idx,
+            (schedule -> idx) AS target,
+            ((schedule -> idx) ->> 'x')::int AS target_x,
+            ((schedule -> idx) ->> 'y')::int AS target_y
+        FROM v
+        WHERE sched_len > 0
+    ),
+    moved AS (
+        SELECT
+            id,
+            CASE
+                WHEN x < target_x THEN x + 1
+                WHEN x > target_x THEN x - 1
+                ELSE x
+            END AS new_x,
+            CASE
+                WHEN x = target_x AND y < target_y THEN y + 1
+                WHEN x = target_x AND y > target_y THEN y - 1
+                ELSE y
+            END AS new_y,
+            CASE
+                WHEN x = target_x AND y = target_y THEN (idx + 1) % sched_len
+                ELSE idx
+            END AS new_idx
+        FROM targets
+    )
+    UPDATE vehicles v
+    SET
+        x = m.new_x,
+        y = m.new_y,
+        schedule_idx = m.new_idx
+    FROM moved m
+    WHERE v.id = m.id;
 END;
 $$;
