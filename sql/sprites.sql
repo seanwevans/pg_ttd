@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS sprites (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    image_base64 TEXT NOT NULL
+);
