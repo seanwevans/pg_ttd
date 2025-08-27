@@ -55,8 +55,14 @@ PostgreSQL and advance the simulation.
    python renderer/cli_viewer.py [--dsn DSN] [--refresh SECONDS] [--step]
    ```
 
-Press `q` to quit. By default each refresh (every 0.5 seconds) calls `tick()` in
-the database to advance the world state. When `--step` is supplied the simulation
-advances only when `t` is pressed. The `--refresh` option controls the delay
-between screen updates.
+   * `--refresh` – delay between screen updates in seconds (default: 0.5)
+   * `--step` – advance the simulation only when `t` is pressed
+
+Press `q` to quit. By default each refresh calls `tick()` in the database to
+advance the world state. When `--step` is supplied the simulation advances only
+when `t` is pressed.
+
+## License
+
+Licensed under the [MIT License](LICENSE).
 
