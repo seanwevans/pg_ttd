@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from scripts import create_vehicle
+from pgttd import create_vehicle as cv_module
 
 DSN = "postgresql://example"
 
@@ -53,7 +54,7 @@ def test_main_success(monkeypatch, capsys):
         assert dsn == DSN
         return conn
 
-    monkeypatch.setattr(create_vehicle.db, "connect", fake_connect)
+    monkeypatch.setattr(cv_module.db, "connect", fake_connect)
 
     monkeypatch.setattr(
         sys,
@@ -93,7 +94,7 @@ def test_main_success(monkeypatch, capsys):
 
 def test_invalid_schedule_json(monkeypatch, capsys):
     connect_mock = MagicMock()
-    monkeypatch.setattr(create_vehicle.db, "connect", connect_mock)
+    monkeypatch.setattr(cv_module.db, "connect", connect_mock)
     monkeypatch.setattr(
         sys,
         "argv",
@@ -104,5 +105,20 @@ def test_invalid_schedule_json(monkeypatch, capsys):
         create_vehicle.main()
     assert exc.value.code == 1
     assert "Invalid JSON for --schedule" in capsys.readouterr().err
+
+    connect_mock.assert_not_called()
+
+
+def test_module_main_invalid_schedule_json(monkeypatch):
+    connect_mock = MagicMock()
+    monkeypatch.setattr(cv_module.db, "connect", connect_mock)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["create_vehicle.py", "--dsn", DSN, "--schedule", "not json"],
+    )
+
+    with pytest.raises(ValueError):
+        cv_module.main()
 
     connect_mock.assert_not_called()
