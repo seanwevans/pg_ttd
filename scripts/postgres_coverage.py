@@ -11,9 +11,11 @@ from __future__ import annotations
 
 import argparse
 import csv
+import os
 from typing import List, Tuple
 
 import psycopg
+from psycopg import conninfo
 
 
 def collect_coverage(dsn: str) -> List[Tuple[str, float, float]]:
@@ -31,7 +33,17 @@ def collect_coverage(dsn: str) -> List[Tuple[str, float, float]]:
           AND n.nspname <> 'information_schema'
         ORDER BY 1
     """
-    with psycopg.connect(dsn) as conn:
+    # Allow authentication via environment variables.
+    user = os.getenv("PGUSER") or os.getenv("POSTGRES_USER")
+    password = os.getenv("PGPASSWORD") or os.getenv("POSTGRES_PASSWORD")
+    conninfo_kwargs = {}
+    if user:
+        conninfo_kwargs["user"] = user
+    if password:
+        conninfo_kwargs["password"] = password
+    conninfo_str = conninfo.make_conninfo(dsn, **conninfo_kwargs)
+
+    with psycopg.connect(conninfo_str) as conn:
         with conn.cursor() as cur:
             cur.execute("CREATE EXTENSION IF NOT EXISTS plpgsql_check")
             cur.execute(query)
