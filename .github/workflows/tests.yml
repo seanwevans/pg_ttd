@@ -16,7 +16,7 @@ jobs:
       with:
         python-version: '3.x'
     - name: Install dependencies
-      run: pip install pytest pytest-cov
+      run: pip install -r requirements.txt -r requirements-dev.txt
     - name: Run tests
       run: pytest --cov=tools --cov-report=xml --cov-report=term
     - name: Upload coverage report
@@ -24,3 +24,21 @@ jobs:
       with:
         name: coverage-report
         path: coverage.xml
+    - name: Install PostgreSQL and plpgsql_check
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql postgresql-16-plpgsql-check
+        sudo pg_ctlcluster 16 main start
+    - name: Run SQL tests and collect coverage
+      run: |
+        sudo -u postgres psql -c "CREATE EXTENSION IF NOT EXISTS plpgsql_check" postgres
+        export PGOPTIONS='-c plpgsql_check.profiler=on'
+        for f in sql/tests/*.sql; do
+          sudo -u postgres psql -v ON_ERROR_STOP=1 -f "$f" postgres
+        done
+        python scripts/postgres_coverage.py --dsn "postgresql://postgres@localhost/postgres"
+    - name: Upload Postgres coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: postgres-coverage
+        path: postgres-coverage.csv
