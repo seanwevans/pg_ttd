@@ -15,7 +15,10 @@ CREATE TABLE IF NOT EXISTS tiles (
 
 CREATE TABLE IF NOT EXISTS companies (
     id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE
+    name TEXT NOT NULL UNIQUE,
+    cash INTEGER NOT NULL DEFAULT 0,
+    income INTEGER NOT NULL DEFAULT 0,
+    expenses INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS industries (
@@ -31,6 +34,19 @@ CREATE TABLE IF NOT EXISTS vehicles (
     type TEXT NOT NULL,
     tile_id INTEGER NOT NULL REFERENCES tiles(id),
     company_id INTEGER NOT NULL REFERENCES companies(id)
+);
+
+CREATE TABLE IF NOT EXISTS industry_outputs (
+    id SERIAL PRIMARY KEY,
+    company_id INTEGER NOT NULL REFERENCES companies(id),
+    value INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS vehicle_operations (
+    id SERIAL PRIMARY KEY,
+    company_id INTEGER NOT NULL REFERENCES companies(id),
+    revenue INTEGER NOT NULL,
+    cost INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS game_state (
