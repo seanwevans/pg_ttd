@@ -8,7 +8,7 @@ connection parameters. A JSON array of waypoints is inserted into the
 import argparse
 import json
 
-import db_util
+import pgttd.db as db
 
 
 def main() -> None:
@@ -28,7 +28,7 @@ def main() -> None:
         default="[]",
         help="JSON description of cargo",
     )
-    args = db_util.parse_dsn(parser)
+    args = db.parse_dsn(parser)
 
     try:
         schedule = json.loads(args.schedule)
@@ -69,7 +69,7 @@ def main() -> None:
                 f"Cargo entry {idx} key 'amount' must be an integer"
             )
 
-    with db_util.connect(args.dsn) as conn:
+    with db.connect(args.dsn) as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """

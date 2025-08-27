@@ -1,15 +1,12 @@
-import sys
-from pathlib import Path
 import json
+import sys
 from unittest.mock import MagicMock
 
 import pytest
 
-# Ensure scripts directory is on the path
-sys.path.append(str(Path(__file__).resolve().parents[1] / "scripts"))
+from scripts import create_vehicle
 
-import create_vehicle  # type: ignore
-import db_util  # type: ignore
+DSN = "postgresql://example"
 
 
 class DummyCursor:
@@ -48,9 +45,6 @@ class DummyConnection:
         self.close()
 
 
-DSN = "postgresql://example"
-
-
 def test_main_success(monkeypatch, capsys):
     cursor = DummyCursor()
     conn = DummyConnection(cursor)
@@ -59,7 +53,7 @@ def test_main_success(monkeypatch, capsys):
         assert dsn == DSN
         return conn
 
-    monkeypatch.setattr(db_util, "connect", fake_connect)
+    monkeypatch.setattr(create_vehicle.db, "connect", fake_connect)
     monkeypatch.setattr(
         sys,
         "argv",
@@ -98,7 +92,7 @@ def test_main_success(monkeypatch, capsys):
 
 def test_invalid_schedule_json(monkeypatch):
     connect_mock = MagicMock()
-    monkeypatch.setattr(db_util, "connect", connect_mock)
+    monkeypatch.setattr(create_vehicle.db, "connect", connect_mock)
     monkeypatch.setattr(
         sys,
         "argv",

@@ -6,18 +6,18 @@ import sys
 
 import psycopg
 
-import db_util
+import pgttd.db as db
 
 
 def main() -> int:
     """Call the ``tick`` stored procedure."""
     parser = argparse.ArgumentParser(description="Advance the game tick")
-    args = db_util.parse_dsn(parser)
+    args = db.parse_dsn(parser)
 
     conn = None
     conn_ctx = None
     try:
-        conn_ctx = db_util.connect(args.dsn)
+        conn_ctx = db.connect(args.dsn)
         if hasattr(conn_ctx, "__enter__"):
             conn = conn_ctx.__enter__()
         else:

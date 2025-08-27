@@ -8,7 +8,7 @@ PostgreSQL database.
 import argparse
 import time
 
-import db_util
+import pgttd.db as db
 
 
 def main() -> None:
@@ -19,9 +19,9 @@ def main() -> None:
         default=100000,
         help="Number of vehicles to insert",
     )
-    args = db_util.parse_dsn(parser)
+    args = db.parse_dsn(parser)
 
-    with db_util.connect(args.dsn) as conn:
+    with db.connect(args.dsn) as conn:
         with conn.cursor() as cur:
             cur.execute("TRUNCATE vehicles")
             cur.execute(
