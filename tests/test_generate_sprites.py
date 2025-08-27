@@ -3,7 +3,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from tools import generate_sprites
+import tools.generate_sprites as generate_sprites
 
 module = generate_sprites
 
@@ -34,7 +34,7 @@ def test_insert_statement_is_escaped(tmp_path):
     conn.execute("CREATE TABLE sprites(name TEXT, image_base64 TEXT)")
     conn.executescript(sql)
 
-    rows = conn.execute("SELECT name, image_base64 FROM sprites").fetchall()
+    rows = list(conn.execute("SELECT name, image_base64 FROM sprites"))
     assert rows == [(malicious_name, payload)]
 
 

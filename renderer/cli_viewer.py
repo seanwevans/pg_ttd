@@ -82,7 +82,7 @@ def fetch_tiles(conn) -> Iterable[Tile]:
     )
     with conn.cursor() as cur:
         cur.execute(sql)
-        for x, y, ch, color in cur.fetchall():
+        for x, y, ch, color in cur:
             yield Tile(x, y, ch, color or "white")
 
 
@@ -146,7 +146,7 @@ def main(stdscr, dsn: str | None, refresh: float, step: bool) -> None:
         conn = psycopg.connect(**config)
     try:
         while True:
-            tiles = list(fetch_tiles(conn))
+            tiles = fetch_tiles(conn)
             render(stdscr, tiles)
             ch = stdscr.getch()
             if ch == ord("q"):
@@ -165,6 +165,7 @@ def main(stdscr, dsn: str | None, refresh: float, step: bool) -> None:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description=__doc__)
+    db.add_dsn_argument(parser)
     parser.add_argument(
         "--refresh",
         type=float,
@@ -176,10 +177,10 @@ if __name__ == "__main__":
         action="store_true",
         help="advance simulation only when 't' is pressed",
     )
+    args = parser.parse_args()
     try:
-        args = db.parse_dsn(parser)
+        db.parse_dsn(args)
         dsn = args.dsn
     except RuntimeError:
-        args = parser.parse_args()
         dsn = None
     curses.wrapper(main, dsn, args.refresh, args.step)

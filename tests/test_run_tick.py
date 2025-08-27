@@ -1,11 +1,10 @@
 import contextlib
 import sys
-from types import SimpleNamespace
 from unittest import mock
 
 import pytest
 
-from scripts import run_tick
+from pgttd import run_tick
 
 DSN = "postgresql://example"
 
@@ -97,9 +96,7 @@ def test_main_rolls_back_on_failure(monkeypatch):
     monkeypatch.setattr(
         run_tick.db, "connect", lambda dsn: contextlib.nullcontext(conn)
     )
-    monkeypatch.setattr(
-        run_tick.db, "parse_dsn", lambda parser: SimpleNamespace(dsn="dsn")
-    )
+    monkeypatch.setattr(run_tick.db, "parse_dsn", lambda args: args)
 
     result = run_tick.main()
 

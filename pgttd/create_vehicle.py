@@ -5,7 +5,6 @@ import json
 
 from . import db
 
-
 def insert_vehicle(
     dsn: str,
     x: int,
@@ -20,7 +19,6 @@ def insert_vehicle(
         ValueError: If ``schedule`` or ``cargo`` are not valid JSON or fail
             validation checks.
     """
-
     try:
         schedule_obj = json.loads(schedule)
     except json.JSONDecodeError as e:
