@@ -62,8 +62,3 @@ PostgreSQL and advance the simulation.
 Press `q` to quit. By default each refresh calls `tick()` in the database to
 advance the world state. When `--step` is supplied the simulation advances only
 when `t` is pressed.
-
-## License
-
-Licensed under the [MIT License](LICENSE).
-
