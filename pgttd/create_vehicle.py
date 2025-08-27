@@ -91,7 +91,9 @@ def main() -> None:
         default="[]",
         help="JSON description of cargo",
     )
-    args = db.parse_dsn(parser)
+    db.add_dsn_argument(parser)
+    args = parser.parse_args()
+    args = db.parse_dsn(args)
 
     insert_vehicle(
         dsn=args.dsn,
