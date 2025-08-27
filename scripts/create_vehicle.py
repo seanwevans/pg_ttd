@@ -20,7 +20,7 @@ def main() -> None:
         "--schedule",
         type=str,
         default="[]",
-        help='JSON array of waypoints, e.g. \'[{"x":0,"y":0},{"x":5,"y":5}]\'',
+        help='JSON array of waypoints, e.g. [{"x":0,"y":0},{"x":5,"y":5}]',
     )
     parser.add_argument("--company-id", type=int, default=None)
     parser.add_argument(
@@ -32,16 +32,18 @@ def main() -> None:
     args = db.parse_dsn(parser)
 
     try:
-        try:
-            schedule = json.loads(args.schedule)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON for --schedule: {e.msg}") from e
+        schedule = json.loads(args.schedule)
+    except json.JSONDecodeError as e:
+        print(f"Invalid JSON for --schedule: {e.msg}", file=sys.stderr)
+        sys.exit(1)
 
-        try:
-            cargo = json.loads(args.cargo)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON for --cargo: {e.msg}") from e
+    try:
+        cargo = json.loads(args.cargo)
+    except json.JSONDecodeError as e:
+        print(f"Invalid JSON for --cargo: {e.msg}", file=sys.stderr)
+        sys.exit(1)
 
+    try:
         if not isinstance(schedule, list):
             raise ValueError("--schedule must be a JSON array")
         for idx, entry in enumerate(schedule):
@@ -68,23 +70,9 @@ def main() -> None:
                 raise ValueError(f"Cargo entry {idx} key 'resource' must be a string")
             if not isinstance(item["amount"], int):
                 raise ValueError(f"Cargo entry {idx} key 'amount' must be an integer")
-
-
-    if not isinstance(cargo, list):
-        raise ValueError("--cargo must be a JSON array")
-    for idx, item in enumerate(cargo):
-        if not isinstance(item, dict):
-            raise ValueError(f"Cargo entry {idx} must be an object")
-        if "resource" not in item or "amount" not in item:
-            raise ValueError(
-                f"Cargo entry {idx} must contain 'resource' and 'amount' keys"
-            )
-        if not isinstance(item["resource"], str):
-            raise ValueError(f"Cargo entry {idx} key 'resource' must be a string")
-        if not isinstance(item["amount"], int):
-            raise ValueError(
-                f"Cargo entry {idx} key 'amount' must be an integer"
-            )
+    except ValueError as e:
+        print(e, file=sys.stderr)
+        sys.exit(1)
 
     with db.connect(args.dsn) as conn:
         with conn.cursor() as cur:
@@ -103,7 +91,6 @@ def main() -> None:
             )
         conn.commit()
     print("Inserted vehicle at", args.x, args.y)
-
 
 
 if __name__ == "__main__":

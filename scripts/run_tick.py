@@ -4,8 +4,6 @@ import argparse
 import logging
 import sys
 
-import psycopg
-
 import pgttd.db as db
 
 
@@ -14,6 +12,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Advance the game tick")
     args = db.parse_dsn(parser)
 
+    conn = None
     try:
         conn_ctx = db.connect(args.dsn)
         if hasattr(conn_ctx, "__enter__"):
@@ -28,9 +27,18 @@ def main() -> int:
 
     except Exception:  # pragma: no cover - simple CLI logging
         logging.exception("tick() execution failed")
+        if conn is not None:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
         return 1
-    logging.info("tick() executed successfully")
-    return 0
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":
