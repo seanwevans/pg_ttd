@@ -39,3 +39,27 @@ CREATE TABLE IF NOT EXISTS game_state (
     seed BIGINT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Resources available in the world economy
+CREATE TABLE IF NOT EXISTS resources (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    amount INTEGER NOT NULL DEFAULT 0
+);
+
+-- Growth and decay rules for resources
+CREATE TABLE IF NOT EXISTS resource_rules (
+    resource_id INTEGER PRIMARY KEY REFERENCES resources(id) ON DELETE CASCADE,
+    growth_rate INTEGER NOT NULL DEFAULT 0,
+    decay_rate INTEGER NOT NULL DEFAULT 0
+);
+
+-- Industries that transform one resource into another
+CREATE TABLE IF NOT EXISTS resource_industries (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    input_resource_id INTEGER REFERENCES resources(id),
+    output_resource_id INTEGER REFERENCES resources(id),
+    input_per_tick INTEGER NOT NULL DEFAULT 0,
+    output_per_tick INTEGER NOT NULL DEFAULT 0
+);

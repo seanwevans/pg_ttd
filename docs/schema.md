@@ -28,6 +28,28 @@ Industry structures placed on tiles.
 - `tile_id` — foreign key to the tile it occupies.
 - `company_id` — optional owning company.
 
+### `resources`
+Tracked quantities for raw materials or goods.
+- `id` — primary key.
+- `name` — unique resource name.
+- `amount` — current stock level.
+
+### `resource_rules`
+Growth and decay rates applied each economy tick.
+- `resource_id` — references the resource.
+- `growth_rate` — amount gained per tick.
+- `decay_rate` — amount lost per tick.
+
+### `resource_industries`
+Lightweight factories that convert one resource into another. These are
+distinct from map `industries` and exist purely in the economic model.
+- `id` — primary key.
+- `name` — unique industry name.
+- `input_resource_id` — resource consumed each tick.
+- `output_resource_id` — resource produced.
+- `input_per_tick` — units of input consumed per tick.
+- `output_per_tick` — units of output produced per tick.
+
 ### `vehicles`
 Movable units controlled by companies.
 - `id` — primary key.
@@ -49,5 +71,8 @@ Singleton metadata about the running simulation.
 - `industries.company_id` → `companies.id`
 - `vehicles.tile_id` → `tiles.id`
 - `vehicles.company_id` → `companies.id`
+- `resource_rules.resource_id` → `resources.id`
+- `resource_industries.input_resource_id` → `resources.id`
+- `resource_industries.output_resource_id` → `resources.id`
 
 These relationships enable querying ownership, positions, and terrain context for simulation routines.
