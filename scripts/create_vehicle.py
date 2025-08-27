@@ -7,9 +7,8 @@ connection parameters. A JSON array of waypoints is inserted into the
 
 import argparse
 import json
-import os
 
-import psycopg
+import db_util
 
 
 def main() -> None:
@@ -29,17 +28,7 @@ def main() -> None:
         default="[]",
         help="JSON description of cargo",
     )
-    parser.add_argument(
-        "--dsn",
-        type=str,
-        default=os.environ.get("DATABASE_URL", ""),
-        help="PostgreSQL DSN; defaults to DATABASE_URL env var",
-    )
-
-    args = parser.parse_args()
-
-    if not args.dsn:
-        raise RuntimeError("Database DSN must be provided via --dsn or DATABASE_URL")
+    args = db_util.parse_dsn(parser)
 
     try:
         schedule = json.loads(args.schedule)
@@ -80,7 +69,7 @@ def main() -> None:
                 f"Cargo entry {idx} key 'amount' must be an integer"
             )
 
-    with psycopg.connect(args.dsn) as conn:
+    with db_util.connect(args.dsn) as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """

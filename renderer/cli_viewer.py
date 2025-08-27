@@ -17,12 +17,17 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 import time
 from dataclasses import dataclass
-from typing import Dict, Iterable, Tuple
+from pathlib import Path
+from typing import Dict, Iterable
 
 import curses
 import psycopg
+
+sys.path.append(str(Path(__file__).resolve().parents[1] / "scripts"))
+import db_util
 
 # ---------------------------------------------------------------------------
 # Database helpers
@@ -126,33 +131,11 @@ def render(stdscr, tiles: Iterable[Tile]) -> None:
 # Entry point
 # ---------------------------------------------------------------------------
 
-
-def parse_args():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--dsn",
-        help="PostgreSQL DSN. Overrides environment variables and config files.",
-    )
-    parser.add_argument(
-        "--refresh",
-        type=float,
-        default=float(os.environ.get("PGTTD_REFRESH", 0.5)),
-        help="Refresh interval in seconds (default: %(default)s).",
-    )
-    parser.add_argument(
-        "--step",
-        action="store_true",
-        help="Only advance simulation when 't' is pressed.",
-    )
-    return parser.parse_args()
-
-
-def main(stdscr, args) -> None:
+def main(stdscr, dsn: str | None = None) -> None:
     curses.curs_set(0)
     stdscr.nodelay(True)
-    dsn = args.dsn or os.environ.get("DATABASE_URL")
     if dsn:
-        conn = psycopg.connect(dsn)
+        conn = db_util.connect(dsn)
     else:
         config = load_config()
         conn = psycopg.connect(**config)
@@ -174,5 +157,10 @@ def main(stdscr, args) -> None:
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    curses.wrapper(main, args)
+    parser = argparse.ArgumentParser(description=__doc__)
+    try:
+        args = db_util.parse_dsn(parser)
+        dsn = args.dsn
+    except RuntimeError:
+        dsn = None
+    curses.wrapper(main, dsn)
