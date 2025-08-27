@@ -43,6 +43,12 @@ class DummyConnection:
         self.rolled_back = False
         self.closed = False
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        self.close()
+
     def cursor(self):
         return self.cursor_obj
 
@@ -95,7 +101,7 @@ def test_main_rolls_back_on_failure(monkeypatch):
     cur.execute.side_effect = RuntimeError
 
     monkeypatch.setattr(
-        run_tick.db_util, "connect", lambda dsn: contextlib.nullcontext(conn)
+        run_tick.db_util, "connect", lambda dsn: contextlib.closing(conn)
     )
     monkeypatch.setattr(
         run_tick.db_util, "parse_dsn", lambda parser: SimpleNamespace(dsn="dsn")
