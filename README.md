@@ -5,6 +5,19 @@ We attempt to reproduce at least part of OpenTTD within a Postgres database.
 That is, all simulation, logic—world generation, tile updates, entities, economics, etc
 is implemented as stored procedures and tables in PostgreSQL.
 
+## Requirements
+
+Python utilities in this repository use the [`psycopg`](https://www.psycopg.org/psycopg3/) driver to
+connect to PostgreSQL. Install the dependencies with:
+
+```bash
+pip install -r requirements.txt
+```
+
+Scripts such as `scripts/run_tick.py` and `scripts/create_vehicle.py` expect a
+PostgreSQL connection string via the `--dsn` option or the `DATABASE_URL`
+environment variable.
+
 ## Renderer
 
 A tiny curses-based renderer is included to visualise the map stored in

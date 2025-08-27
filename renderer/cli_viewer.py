@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from typing import Dict, Iterable, Tuple
 
 import curses
-import psycopg2
+import psycopg
 
 # ---------------------------------------------------------------------------
 # Database helpers
@@ -128,7 +128,7 @@ def main(stdscr) -> None:
     curses.curs_set(0)
     stdscr.nodelay(True)
     config = load_config()
-    conn = psycopg2.connect(**config)
+    conn = psycopg.connect(**config)
     try:
         while True:
             tiles = list(fetch_tiles(conn))
