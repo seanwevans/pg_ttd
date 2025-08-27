@@ -4,7 +4,7 @@ from unittest import mock
 
 import pytest
 
-from scripts import run_tick
+from pgttd import run_tick
 
 DSN = "postgresql://example"
 
