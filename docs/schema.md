@@ -18,8 +18,11 @@ Represents each map tile.
 
 ### `companies`
 Companies owned by players or AI.
-- `id` — primary key.
+- `company_id` — primary key.
 - `name` — company name.
+- `cash` — total available money.
+- `income` — earnings generated in the current tick.
+- `expenses` — money spent in the current tick.
 
 ### `industries`
 Industry structures placed on tiles.
@@ -31,9 +34,10 @@ Industry structures placed on tiles.
 ### `vehicles`
 Movable units controlled by companies.
 - `id` — primary key.
-- `name` — vehicle name.
-- `type` — vehicle type (e.g., train, truck).
-- `tile_id` — current tile position.
+- `x`, `y` — current map coordinates.
+- `schedule` — array of waypoint objects.
+- `schedule_idx` — index of the next waypoint.
+- `cargo` — array of carried items.
 - `company_id` — owning company.
 
 ### `game_state`
@@ -46,8 +50,7 @@ Singleton metadata about the running simulation.
 ## Relationships
 - `tiles.terrain_id` → `terrain.id`
 - `industries.tile_id` → `tiles.id`
-- `industries.company_id` → `companies.id`
-- `vehicles.tile_id` → `tiles.id`
-- `vehicles.company_id` → `companies.id`
+- `industries.company_id` → `companies.company_id`
+- `vehicles.company_id` → `companies.company_id`
 
 These relationships enable querying ownership, positions, and terrain context for simulation routines.
