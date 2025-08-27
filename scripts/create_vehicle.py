@@ -41,8 +41,44 @@ def main() -> None:
     if not args.dsn:
         raise RuntimeError("Database DSN must be provided via --dsn or DATABASE_URL")
 
-    schedule = json.loads(args.schedule)
-    cargo = json.loads(args.cargo)
+    try:
+        schedule = json.loads(args.schedule)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON for --schedule: {e.msg}") from e
+
+    try:
+        cargo = json.loads(args.cargo)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON for --cargo: {e.msg}") from e
+
+    if not isinstance(schedule, list):
+        raise ValueError("--schedule must be a JSON array")
+    for idx, entry in enumerate(schedule):
+        if not isinstance(entry, dict):
+            raise ValueError(f"Schedule entry {idx} must be an object")
+        for coord in ("x", "y"):
+            if coord not in entry:
+                raise ValueError(f"Schedule entry {idx} missing '{coord}'")
+            if not isinstance(entry[coord], int):
+                raise ValueError(
+                    f"Schedule entry {idx} key '{coord}' must be an integer"
+                )
+
+    if not isinstance(cargo, list):
+        raise ValueError("--cargo must be a JSON array")
+    for idx, item in enumerate(cargo):
+        if not isinstance(item, dict):
+            raise ValueError(f"Cargo entry {idx} must be an object")
+        if "resource" not in item or "amount" not in item:
+            raise ValueError(
+                f"Cargo entry {idx} must contain 'resource' and 'amount' keys"
+            )
+        if not isinstance(item["resource"], str):
+            raise ValueError(f"Cargo entry {idx} key 'resource' must be a string")
+        if not isinstance(item["amount"], int):
+            raise ValueError(
+                f"Cargo entry {idx} key 'amount' must be an integer"
+            )
 
     with psycopg.connect(args.dsn) as conn:
         with conn.cursor() as cur:
