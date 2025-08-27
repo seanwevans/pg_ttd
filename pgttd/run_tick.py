@@ -10,7 +10,9 @@ from . import db
 def main() -> int:
     """Call the ``tick`` stored procedure."""
     parser = argparse.ArgumentParser(description="Advance the game tick")
-    args = db.parse_dsn(parser)
+    db.add_dsn_argument(parser)
+    args = parser.parse_args()
+    db.parse_dsn(args)
 
     conn = None
     conn_ctx = None

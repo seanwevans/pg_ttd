@@ -165,6 +165,7 @@ def main(stdscr, dsn: str | None, refresh: float, step: bool) -> None:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description=__doc__)
+    db.add_dsn_argument(parser)
     parser.add_argument(
         "--refresh",
         type=float,
@@ -176,10 +177,10 @@ if __name__ == "__main__":
         action="store_true",
         help="advance simulation only when 't' is pressed",
     )
+    args = parser.parse_args()
     try:
-        args = db.parse_dsn(parser)
+        db.parse_dsn(args)
         dsn = args.dsn
     except RuntimeError:
-        args = parser.parse_args()
         dsn = None
     curses.wrapper(main, dsn, args.refresh, args.step)

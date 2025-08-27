@@ -8,6 +8,7 @@ from . import db
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Create a vehicle")
+    db.add_dsn_argument(parser)
     parser.add_argument("--x", type=int, default=0, help="Starting X coordinate")
     parser.add_argument("--y", type=int, default=0, help="Starting Y coordinate")
     parser.add_argument(
@@ -23,7 +24,8 @@ def main() -> None:
         default="[]",
         help="JSON description of cargo",
     )
-    args = db.parse_dsn(parser)
+    args = parser.parse_args()
+    db.parse_dsn(args)
 
     try:
         schedule = json.loads(args.schedule)
