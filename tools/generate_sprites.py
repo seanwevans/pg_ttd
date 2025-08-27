@@ -18,6 +18,20 @@ import zlib
 from pathlib import Path
 from typing import Dict, Tuple
 
+
+def quote_sql(value: str) -> str:
+    """Return a safely quoted SQL string literal."""
+    return "'" + value.replace("'", "''") + "'"
+
+
+def insert_statement(name: str, b64: str) -> str:
+    """Return an INSERT statement for the sprites table."""
+    return (
+        "INSERT INTO sprites(name, image_base64) VALUES ({name}, {b64});".format(
+            name=quote_sql(name), b64=quote_sql(b64)
+        )
+    )
+
 # Basic palette of sprite colors.
 PALETTE: Dict[str, Tuple[int, int, int]] = {
     "red": (255, 0, 0),
@@ -90,11 +104,7 @@ def main() -> None:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("w", encoding="utf-8") as f:
         for name, b64 in sprites.items():
-            f.write(
-                "INSERT INTO sprites(name, image_base64) VALUES ('{name}', '{b64}');\n".format(
-                    name=name, b64=b64
-                )
-            )
+            f.write(insert_statement(name, b64) + "\n")
     print(f"Wrote {len(sprites)} sprites to {args.output}")
 
 
