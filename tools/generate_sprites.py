@@ -16,12 +16,21 @@ import io
 import struct
 import zlib
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Any, Dict, Tuple
 
 
-def quote_sql(value: str) -> str:
-    """Return a safely quoted SQL string literal."""
-    return "'" + value.replace("'", "''") + "'"
+def quote_sql(value: Any) -> str:
+    """Return a safely quoted SQL string literal.
+
+    The original implementation assumed ``value`` was always a string and
+    called :py:meth:`str.replace` directly.  During packaging/build steps some
+    callers may provide values such as integers or ``Path`` objects which do
+    not implement ``replace``.  Converting to ``str`` first avoids ``AttributeError``
+    and ensures we can safely escape any single quotes.
+    """
+
+    text = str(value)
+    return "'" + text.replace("'", "''") + "'"
 
 
 def insert_statement(name: str, b64: str) -> str:
