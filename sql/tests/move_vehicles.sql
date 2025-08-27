@@ -3,6 +3,7 @@
 BEGIN;
 
 -- load schema and procedure definitions
+\ir ../tables/companies.sql
 \ir ../tables/vehicles.sql
 \ir ../procs/move_vehicles.sql
 

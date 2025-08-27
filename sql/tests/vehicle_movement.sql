@@ -3,9 +3,20 @@
 BEGIN;
 
 -- load schema and function under test
+\ir ../tables/companies.sql
 \ir ../tables/vehicles.sql
 \ir ../procs/pathfinding.sql
 \ir ../procs/vehicle_movement.sql
+
+-- minimal terrain for pathfinding
+CREATE TEMP TABLE terrain(
+    tile_x int,
+    tile_y int,
+    type text
+);
+INSERT INTO terrain(tile_x, tile_y, type)
+SELECT x, y, 'plain'
+FROM generate_series(1,3) x CROSS JOIN generate_series(1,3) y;
 
 -- setup a vehicle starting at (1,1)
 TRUNCATE vehicles RESTART IDENTITY;

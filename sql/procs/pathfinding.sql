@@ -10,62 +10,46 @@ CREATE OR REPLACE FUNCTION find_route(
 )
 RETURNS integer[][] AS $$
 DECLARE
-    cur_x integer;
-    cur_y integer;
-    cur_cost integer;
+    cur RECORD;
     nbr RECORD;
-    node integer[];
     path integer[][] := ARRAY[]::integer[][];
-    open_set integer[][] := ARRAY[]::integer[][];  -- [x,y,cost,priority]
-    came_from integer[][] := ARRAY[]::integer[][]; -- [x,y,prev_x,prev_y,cost]
-    idx integer;
-    pri integer;
     step_cost integer;
     terrain_type text;
 BEGIN
-    -- Seed initial node
-    open_set := ARRAY[[start_x, start_y, 0,
-                       abs(start_x - end_x) + abs(start_y - end_y)]];
-    came_from := ARRAY[[start_x, start_y, NULL::integer, NULL::integer, 0]];
+    DROP TABLE IF EXISTS tmp_open;
+    CREATE TEMP TABLE tmp_open(
+        x int,
+        y int,
+        cost int,
+        priority int
+    ) ON COMMIT DROP;
+    DROP TABLE IF EXISTS tmp_came;
+    CREATE TEMP TABLE tmp_came(
+        x int,
+        y int,
+        prev_x int,
+        prev_y int,
+        cost int
+    ) ON COMMIT DROP;
+
+    INSERT INTO tmp_open VALUES (start_x, start_y, 0,
+        abs(start_x - end_x) + abs(start_y - end_y));
+    INSERT INTO tmp_came VALUES (start_x, start_y, NULL, NULL, 0);
 
     LOOP
-        -- No nodes left to explore
-        IF array_length(open_set, 1) IS NULL THEN
+        SELECT * INTO cur FROM tmp_open ORDER BY priority LIMIT 1;
+        IF NOT FOUND THEN
             RETURN ARRAY[]::integer[][];
         END IF;
+        DELETE FROM tmp_open WHERE x = cur.x AND y = cur.y AND cost = cur.cost AND priority = cur.priority;
+        EXIT WHEN cur.x = end_x AND cur.y = end_y;
 
-        -- Find node with lowest priority
-        idx := 1;
-        pri := open_set[1][4];
-        FOR i IN 2..array_length(open_set, 1) LOOP
-            IF open_set[i][4] < pri THEN
-                pri := open_set[i][4];
-                idx := i;
-            END IF;
-        END LOOP;
-
-        node := open_set[idx];
-        cur_x := node[1];
-        cur_y := node[2];
-        cur_cost := node[3];
-
-        -- Remove current node from open set
-        open_set := ARRAY(
-            SELECT elem FROM unnest(open_set) WITH ORDINALITY AS u(elem, ord)
-            WHERE ord <> idx
-        );
-
-        -- Goal reached
-        EXIT WHEN cur_x = end_x AND cur_y = end_y;
-
-        -- Explore neighbouring tiles
         FOR nbr IN
-            SELECT cur_x + 1 AS x, cur_y AS y
-            UNION ALL SELECT cur_x - 1, cur_y
-            UNION ALL SELECT cur_x, cur_y + 1
-            UNION ALL SELECT cur_x, cur_y - 1
+            SELECT cur.x + 1 AS x, cur.y AS y
+            UNION ALL SELECT cur.x - 1, cur.y
+            UNION ALL SELECT cur.x, cur.y + 1
+            UNION ALL SELECT cur.x, cur.y - 1
         LOOP
-            -- Skip impassable terrain (e.g. water or mountain)
             SELECT type INTO terrain_type
             FROM terrain
             WHERE tile_x = nbr.x AND tile_y = nbr.y;
@@ -73,39 +57,33 @@ BEGIN
                 CONTINUE;
             END IF;
 
-            -- Determine traversal cost for this tile
             step_cost := 1;
             IF cost_map IS NOT NULL THEN
-                SELECT c[3] INTO step_cost
-                FROM unnest(cost_map) AS c
-                WHERE c[1] = nbr.x AND c[2] = nbr.y;
+                SELECT cost_map[s][3] INTO step_cost
+                FROM generate_subscripts(cost_map, 1) AS s
+                WHERE cost_map[s][1] = nbr.x AND cost_map[s][2] = nbr.y;
                 step_cost := COALESCE(step_cost, 1);
             END IF;
 
-            IF NOT EXISTS (
-                SELECT 1 FROM unnest(came_from) AS cf
-                WHERE cf[1] = nbr.x AND cf[2] = nbr.y
-            ) THEN
-                came_from := came_from ||
-                    ARRAY[[nbr.x, nbr.y, cur_x, cur_y, cur_cost + step_cost]];
-                open_set := open_set ||
-                    ARRAY[[nbr.x, nbr.y, cur_cost + step_cost,
-                           cur_cost + step_cost +
-                           abs(nbr.x - end_x) + abs(nbr.y - end_y)]];
+            IF NOT EXISTS (SELECT 1 FROM tmp_came WHERE x = nbr.x AND y = nbr.y) THEN
+                INSERT INTO tmp_came VALUES (nbr.x, nbr.y, cur.x, cur.y, cur.cost + step_cost);
+                INSERT INTO tmp_open VALUES (
+                    nbr.x,
+                    nbr.y,
+                    cur.cost + step_cost,
+                    cur.cost + step_cost + abs(nbr.x - end_x) + abs(nbr.y - end_y)
+                );
             END IF;
         END LOOP;
     END LOOP;
 
-    -- Reconstruct path
-    cur_x := end_x;
-    cur_y := end_y;
+    cur.x := end_x;
+    cur.y := end_y;
     LOOP
-        path := ARRAY[[cur_x, cur_y]] || path;
-        EXIT WHEN cur_x = start_x AND cur_y = start_y;
-        SELECT cf[3], cf[4] INTO cur_x, cur_y
-        FROM unnest(came_from) AS cf
-        WHERE cf[1] = cur_x AND cf[2] = cur_y;
-        IF cur_x IS NULL THEN
+        path := ARRAY[ARRAY[cur.x, cur.y]] || path;
+        EXIT WHEN cur.x = start_x AND cur.y = start_y;
+        SELECT prev_x, prev_y INTO cur.x, cur.y FROM tmp_came WHERE x = cur.x AND y = cur.y;
+        IF cur.x IS NULL THEN
             RETURN ARRAY[]::integer[][];
         END IF;
     END LOOP;
@@ -113,4 +91,3 @@ BEGIN
     RETURN path;
 END;
 $$ LANGUAGE plpgsql;
-
