@@ -3,6 +3,8 @@
 import argparse
 import json
 
+from psycopg.types.json import Json
+
 from . import db
 
 
@@ -48,6 +50,10 @@ def validate_cargo(cargo: str) -> list[dict[str, object]]:
             raise ValueError(f"Cargo entry {idx} key 'resource' must be a string")
         if not isinstance(item["amount"], int):
             raise ValueError(f"Cargo entry {idx} key 'amount' must be an integer")
+        if item["amount"] < 0:
+            raise ValueError(
+                f"Cargo entry {idx} key 'amount' must be non-negative"
+            )
     return cargo_obj
 
 
@@ -78,8 +84,8 @@ def insert_vehicle(
                 (
                     x,
                     y,
-                    json.dumps(schedule_obj),
-                    json.dumps(cargo_obj),
+                    Json(schedule_obj),
+                    Json(cargo_obj),
                     company_id,
                 ),
             )
@@ -90,13 +96,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
     """Return an argument parser configured for vehicle creation."""
     parser = argparse.ArgumentParser(description="Create a vehicle")
     db.add_dsn_argument(parser)
-    parser.add_argument("--x", type=int, default=0, help="Starting X coordinate")
-    parser.add_argument("--y", type=int, default=0, help="Starting Y coordinate")
+    parser.add_argument("--x", type=int, default=1, help="Starting X coordinate")
+    parser.add_argument("--y", type=int, default=1, help="Starting Y coordinate")
     parser.add_argument(
         "--schedule",
         type=str,
         default="[]",
-        help='JSON array of waypoints, e.g. "[{"x":0,"y":0},{"x":5,"y":5}]"',
+        help='JSON array of waypoints, e.g. "[{"x":1,"y":1},{"x":5,"y":5}]"',
     )
     parser.add_argument("--company-id", type=int, default=None)
     parser.add_argument(

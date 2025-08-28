@@ -114,21 +114,21 @@ def advance_tick(conn) -> None:
 # ---------------------------------------------------------------------------
 
 
-COLOUR_CACHE: dict[str, int] = {}
+COLOR_CACHE: dict[str, int] = {}
 
 
-def colour_pair(colour: str, cache: dict[str, int] | None = None) -> int:
+def color_pair(color: str, cache: dict[str, int] | None = None) -> int:
     """Return a curses color pair for a color name."""
 
     if cache is None:
-        cache = COLOUR_CACHE
-    colour = colour.lower()
-    if colour not in cache:
+        cache = COLOR_CACHE
+    color = color.lower()
+    if color not in cache:
         idx = len(cache) + 1
-        base = COLOR_NAMES.get(colour, curses.COLOR_WHITE)
+        base = COLOR_NAMES.get(color, curses.COLOR_WHITE)
         curses.init_pair(idx, base, curses.COLOR_BLACK)
-        cache[colour] = idx
-    return curses.color_pair(cache[colour])
+        cache[color] = idx
+    return curses.color_pair(cache[color])
 
 
 def render(
@@ -136,12 +136,12 @@ def render(
 ) -> None:
     """Render tiles onto the curses screen."""
 
-    if colour_cache is None:
-        colour_cache = COLOUR_CACHE
+    if color_cache is None:
+        color_cache = COLOR_CACHE
     stdscr.erase()
     for tile in tiles:
         try:
-            stdscr.addch(tile.y, tile.x, tile.ch, colour_pair(tile.color, colour_cache))
+            stdscr.addch(tile.y, tile.x, tile.ch, color_pair(tile.color, color_cache))
         except curses.error:
             # Ignore tiles outside the screen.
             pass
@@ -166,7 +166,7 @@ def main(stdscr, dsn: str | None, refresh: float, step: bool) -> None:
     try:
         while True:
             tiles = fetch_tiles(conn)
-            render(stdscr, tiles, COLOUR_CACHE)
+            render(stdscr, tiles, COLOR_CACHE)
             ch = stdscr.getch()
             if ch == ord("q"):
                 break

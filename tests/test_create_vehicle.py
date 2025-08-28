@@ -3,6 +3,7 @@ import sys
 from unittest.mock import MagicMock
 
 import pytest
+from psycopg.types.json import Json
 
 from pgttd import create_vehicle
 
@@ -88,16 +89,43 @@ def test_main_success(monkeypatch, capsys):
 
     sql, params = cursor.executed
     assert "INSERT INTO vehicles" in sql
-    assert params == (
-        1,
-        2,
-        json.dumps([{"x": 1, "y": 2}]),
-        json.dumps([{"resource": "wood", "amount": 3}]),
-        7,
-    )
+    assert params[0] == 1
+    assert params[1] == 2
+    assert isinstance(params[2], Json)
+    assert params[2].obj == [{"x": 1, "y": 2}]
+    assert isinstance(params[3], Json)
+    assert params[3].obj == [{"resource": "wood", "amount": 3}]
+    assert params[4] == 7
     assert conn.committed
     assert conn.closed
     assert f"Inserted vehicle at 1 2" in capsys.readouterr().out
+
+
+def test_main_defaults(monkeypatch, capsys):
+    cursor = DummyCursor()
+    conn = DummyConnection(cursor)
+
+    def fake_connect(dsn: str):
+        assert dsn == DSN
+        return conn
+
+    monkeypatch.setattr(create_vehicle.db, "connect", fake_connect)
+    monkeypatch.setattr(sys, "argv", ["create_vehicle.py", "--dsn", DSN])
+
+    create_vehicle.main()
+
+    sql, params = cursor.executed
+    assert "INSERT INTO vehicles" in sql
+    assert params == (
+        1,
+        1,
+        json.dumps([]),
+        json.dumps([]),
+        None,
+    )
+    assert conn.committed
+    assert conn.closed
+    assert f"Inserted vehicle at 1 1" in capsys.readouterr().out
 
 
 def test_invalid_schedule_json(monkeypatch):
@@ -127,10 +155,10 @@ def test_validate_schedule_success():
         ("not json", "Invalid JSON for --schedule"),
         ("{}", "--schedule must be a JSON array"),
         ("[1]", "Schedule entry 0 must be an object"),
-        ("[{\"y\":2}]", "Schedule entry 0 missing 'x'"),
-        ("[{\"x\":2}]", "Schedule entry 0 missing 'y'"),
-        ("[{\"x\":\"1\",\"y\":2}]", "Schedule entry 0 key 'x' must be an integer"),
-        ("[{\"x\":1,\"y\":\"2\"}]", "Schedule entry 0 key 'y' must be an integer"),
+        ('[{"y":2}]', "Schedule entry 0 missing 'x'"),
+        ('[{"x":2}]', "Schedule entry 0 missing 'y'"),
+        ('[{"x":"1","y":2}]', "Schedule entry 0 key 'x' must be an integer"),
+        ('[{"x":1,"y":"2"}]', "Schedule entry 0 key 'y' must be an integer"),
     ],
 )
 def test_validate_schedule_errors(schedule, msg):
@@ -165,6 +193,10 @@ def test_validate_cargo_success():
             '[{"resource":"wood","amount":"3"}]',
             "Cargo entry 0 key 'amount' must be an integer",
         ),
+        (
+            '[{"resource":"wood","amount":-1}]',
+            "Cargo entry 0 key 'amount' must be non-negative",
+        ),
     ],
 )
 def test_validate_cargo_errors(cargo, msg):
@@ -184,7 +216,7 @@ def test_insert_vehicle_cargo_missing_required_keys(monkeypatch, cargo):
     monkeypatch.setattr(create_vehicle.db, "connect", connect_mock)
 
     with pytest.raises(ValueError):
-        create_vehicle.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
+        create_vehicle.insert_vehicle(DSN, 1, 1, "[]", cargo, None)
 
     connect_mock.assert_not_called()
 
@@ -195,7 +227,7 @@ def test_insert_vehicle_cargo_resource_wrong_type(monkeypatch):
     cargo = json.dumps([{"resource": 5, "amount": 3}])
 
     with pytest.raises(ValueError):
-        create_vehicle.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
+        create_vehicle.insert_vehicle(DSN, 1, 1, "[]", cargo, None)
 
     connect_mock.assert_not_called()
 
@@ -204,6 +236,17 @@ def test_insert_vehicle_cargo_amount_non_integer(monkeypatch):
     connect_mock = MagicMock()
     monkeypatch.setattr(create_vehicle.db, "connect", connect_mock)
     cargo = json.dumps([{"resource": "wood", "amount": "three"}])
+
+    with pytest.raises(ValueError):
+        create_vehicle.insert_vehicle(DSN, 1, 1, "[]", cargo, None)
+
+    connect_mock.assert_not_called()
+
+
+def test_insert_vehicle_cargo_amount_negative(monkeypatch):
+    connect_mock = MagicMock()
+    monkeypatch.setattr(create_vehicle.db, "connect", connect_mock)
+    cargo = json.dumps([{"resource": "wood", "amount": -1}])
 
     with pytest.raises(ValueError):
         create_vehicle.insert_vehicle(DSN, 0, 0, "[]", cargo, None)

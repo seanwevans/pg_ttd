@@ -57,7 +57,7 @@ def test_render_uses_less_memory_with_generator(monkeypatch, N):
     assert peak_gen < peak_list
 
 
-def test_render_reuses_colour_cache(monkeypatch):
+def test_render_reuses_color_cache(monkeypatch):
     calls = []
     dummy_curses = types.SimpleNamespace(
         COLOR_BLACK=0,
