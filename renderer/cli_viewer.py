@@ -103,7 +103,7 @@ def advance_tick(conn) -> None:
         try:
             cur.execute("CALL tick()")
             conn.commit()
-        except Exception:
+        except psycopg.Error:
             conn.rollback()
             logger.exception("Failed to advance simulation tick")
             raise
@@ -131,7 +131,9 @@ def color_pair(color: str, cache: dict[str, int] | None = None) -> int:
     return curses.color_pair(cache[color])
 
 
-def render(stdscr, tiles: Iterable[Tile], color_cache: dict[str, int] | None = None) -> None:
+def render(
+    stdscr, tiles: Iterable[Tile], colour_cache: dict[str, int] | None = None
+) -> None:
     """Render tiles onto the curses screen."""
 
     if color_cache is None:
@@ -171,7 +173,7 @@ def main(stdscr, dsn: str | None, refresh: float, step: bool) -> None:
             if not step or ch == ord("t"):
                 try:
                     advance_tick(conn)
-                except Exception:
+                except psycopg.Error:
                     logger.error("Tick advancement failed; exiting viewer")
                     break
             time.sleep(refresh)

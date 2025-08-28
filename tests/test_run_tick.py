@@ -1,6 +1,7 @@
 import sys
 from unittest import mock
 
+import psycopg
 import pytest
 
 from pgttd import run_tick
@@ -21,7 +22,7 @@ class DummyCursor:
 
     def execute(self, sql: str):
         if self.should_fail:
-            raise Exception("boom")
+            raise psycopg.Error("boom")
         self.sql = sql
 
 
@@ -98,7 +99,7 @@ def test_main_rolls_back_on_failure(monkeypatch):
     conn.__exit__.side_effect = exit_side_effect
     conn.cursor.return_value.__enter__.return_value = cur
     conn.cursor.return_value.__exit__.return_value = False
-    cur.execute.side_effect = RuntimeError
+    cur.execute.side_effect = psycopg.Error("fail")
 
     monkeypatch.setattr(run_tick.db, "connect", lambda dsn: conn)
     monkeypatch.setattr(run_tick.db, "parse_dsn", lambda args: args)
@@ -107,4 +108,28 @@ def test_main_rolls_back_on_failure(monkeypatch):
 
     assert result == 1
     conn.rollback.assert_called_once()
+    conn.close.assert_called_once()
+
+
+def test_main_unexpected_exception_propagates(monkeypatch):
+    conn = mock.MagicMock()
+    cur = mock.MagicMock()
+    conn.__enter__.return_value = conn
+
+    def exit_side_effect(exc_type, exc, tb):
+        conn.close()
+        return False
+
+    conn.__exit__.side_effect = exit_side_effect
+    conn.cursor.return_value.__enter__.return_value = cur
+    conn.cursor.return_value.__exit__.return_value = False
+    cur.execute.side_effect = RuntimeError("boom")
+
+    monkeypatch.setattr(run_tick.db, "connect", lambda dsn: conn)
+    monkeypatch.setattr(run_tick.db, "parse_dsn", lambda args: args)
+
+    with pytest.raises(RuntimeError):
+        run_tick.main()
+
+    conn.rollback.assert_not_called()
     conn.close.assert_called_once()
