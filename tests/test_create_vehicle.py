@@ -6,6 +6,15 @@ import pytest
 
 from pgttd import create_vehicle
 
+# The original tests reference a ``cv_module`` variable but never assign it.
+#
+# Older versions of this test suite imported the module under that name, so the
+# later assertions still expect a ``cv_module`` variable to exist.  Without this
+# alias the tests crash with ``NameError`` before exercising the real
+# functionality.  Provide the alias here so the tests can focus on validating
+# the module's behaviour rather than failing due to a missing symbol.
+cv_module = create_vehicle
+
 DSN = "postgresql://example"
 
 
