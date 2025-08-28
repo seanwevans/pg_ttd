@@ -122,3 +122,42 @@ def test_module_main_invalid_schedule_json(monkeypatch):
         cv_module.main()
 
     connect_mock.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "cargo",
+    [
+        json.dumps([{"resource": "wood"}]),  # missing amount
+        json.dumps([{"amount": 3}]),  # missing resource
+    ],
+)
+def test_insert_vehicle_cargo_missing_required_keys(monkeypatch, cargo):
+    connect_mock = MagicMock()
+    monkeypatch.setattr(cv_module.db, "connect", connect_mock)
+
+    with pytest.raises(ValueError):
+        cv_module.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
+
+    connect_mock.assert_not_called()
+
+
+def test_insert_vehicle_cargo_resource_wrong_type(monkeypatch):
+    connect_mock = MagicMock()
+    monkeypatch.setattr(cv_module.db, "connect", connect_mock)
+    cargo = json.dumps([{"resource": 5, "amount": 3}])
+
+    with pytest.raises(ValueError):
+        cv_module.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
+
+    connect_mock.assert_not_called()
+
+
+def test_insert_vehicle_cargo_amount_non_integer(monkeypatch):
+    connect_mock = MagicMock()
+    monkeypatch.setattr(cv_module.db, "connect", connect_mock)
+    cargo = json.dumps([{"resource": "wood", "amount": "three"}])
+
+    with pytest.raises(ValueError):
+        cv_module.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
+
+    connect_mock.assert_not_called()
