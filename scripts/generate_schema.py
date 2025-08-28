@@ -26,8 +26,9 @@ TABLE_ORDER = [
     "resource_industries",
 ]
 
+
 def main() -> None:
-    with SCHEMA_PATH.open("w") as schema:
+    with SCHEMA_PATH.open("w", encoding="utf-8") as schema:
         schema.write("-- Auto-generated; do not edit directly.\n\n")
         for name in TABLE_ORDER:
             path = TABLES_DIR / f"{name}.sql"
@@ -36,6 +37,7 @@ def main() -> None:
             if not text.endswith("\n"):
                 schema.write("\n")
             schema.write("\n")
+
 
 if __name__ == "__main__":
     main()
