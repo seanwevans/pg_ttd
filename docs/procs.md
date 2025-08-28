@@ -20,12 +20,12 @@ CALL tick();
 ```
 
 ### Python wrapper
-The script [`scripts/run_tick.py`](../scripts/run_tick.py) calls `tick()` using
+The module [`pgttd.run_tick`](../pgttd/run_tick.py) calls `tick()` using
 [`psycopg`](https://www.psycopg.org/). Set the `DATABASE_URL` environment
 variable and run:
 
 ```bash
-python scripts/run_tick.py
+python -m pgttd.run_tick
 ```
 
 ## `economy_tick()`
