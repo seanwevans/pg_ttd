@@ -3,6 +3,8 @@
 import argparse
 import json
 
+from psycopg.types.json import Json
+
 from . import db
 
 
@@ -78,8 +80,8 @@ def insert_vehicle(
                 (
                     x,
                     y,
-                    json.dumps(schedule_obj),
-                    json.dumps(cargo_obj),
+                    Json(schedule_obj),
+                    Json(cargo_obj),
                     company_id,
                 ),
             )
