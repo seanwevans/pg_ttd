@@ -48,6 +48,10 @@ def validate_cargo(cargo: str) -> list[dict[str, object]]:
             raise ValueError(f"Cargo entry {idx} key 'resource' must be a string")
         if not isinstance(item["amount"], int):
             raise ValueError(f"Cargo entry {idx} key 'amount' must be an integer")
+        if item["amount"] < 0:
+            raise ValueError(
+                f"Cargo entry {idx} key 'amount' must be non-negative"
+            )
     return cargo_obj
 
 
