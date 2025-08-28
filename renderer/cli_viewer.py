@@ -20,7 +20,7 @@ import os
 import time
 import logging
 from dataclasses import dataclass
-from typing import Dict, Iterable
+from typing import Iterable
 
 import curses
 import psycopg
@@ -56,13 +56,17 @@ COLOR_NAMES = {
 }
 
 
-def load_config() -> Dict[str, str]:
+def load_config() -> dict[str, str]:
     """Return connection parameters from environment or config file."""
 
     cfg_path = os.environ.get("PGTTD_CONFIG")
     if cfg_path and os.path.exists(cfg_path):
         with open(cfg_path, "r", encoding="utf8") as cfg:
-            return json.load(cfg)
+            try:
+                return json.load(cfg)
+            except json.JSONDecodeError as exc:
+                msg = f"Invalid JSON in config file '{cfg_path}': {exc.msg}"
+                raise RuntimeError(msg) from exc
 
     return {
         "host": os.environ.get("PGHOST", "localhost"),
@@ -103,7 +107,7 @@ def advance_tick(conn) -> None:
 # ---------------------------------------------------------------------------
 
 
-def colour_pair(colour: str, cache: Dict[str, int]) -> int:
+def colour_pair(colour: str, cache: dict[str, int]) -> int:
     """Return a curses color pair for a color name."""
 
     colour = colour.lower()
@@ -119,7 +123,7 @@ def render(stdscr, tiles: Iterable[Tile]) -> None:
     """Render tiles onto the curses screen."""
 
     stdscr.erase()
-    colour_cache: Dict[str, int] = {}
+    colour_cache: dict[str, int] = {}
     for tile in tiles:
         try:
             stdscr.addch(tile.y, tile.x, tile.ch, colour_pair(tile.color, colour_cache))
