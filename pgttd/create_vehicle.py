@@ -90,13 +90,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
     """Return an argument parser configured for vehicle creation."""
     parser = argparse.ArgumentParser(description="Create a vehicle")
     db.add_dsn_argument(parser)
-    parser.add_argument("--x", type=int, default=0, help="Starting X coordinate")
-    parser.add_argument("--y", type=int, default=0, help="Starting Y coordinate")
+    parser.add_argument("--x", type=int, default=1, help="Starting X coordinate")
+    parser.add_argument("--y", type=int, default=1, help="Starting Y coordinate")
     parser.add_argument(
         "--schedule",
         type=str,
         default="[]",
-        help='JSON array of waypoints, e.g. "[{"x":0,"y":0},{"x":5,"y":5}]"',
+        help='JSON array of waypoints, e.g. "[{"x":1,"y":1},{"x":5,"y":5}]"',
     )
     parser.add_argument("--company-id", type=int, default=None)
     parser.add_argument(

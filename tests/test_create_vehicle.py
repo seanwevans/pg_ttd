@@ -100,6 +100,33 @@ def test_main_success(monkeypatch, capsys):
     assert f"Inserted vehicle at 1 2" in capsys.readouterr().out
 
 
+def test_main_defaults(monkeypatch, capsys):
+    cursor = DummyCursor()
+    conn = DummyConnection(cursor)
+
+    def fake_connect(dsn: str):
+        assert dsn == DSN
+        return conn
+
+    monkeypatch.setattr(create_vehicle.db, "connect", fake_connect)
+    monkeypatch.setattr(sys, "argv", ["create_vehicle.py", "--dsn", DSN])
+
+    create_vehicle.main()
+
+    sql, params = cursor.executed
+    assert "INSERT INTO vehicles" in sql
+    assert params == (
+        1,
+        1,
+        json.dumps([]),
+        json.dumps([]),
+        None,
+    )
+    assert conn.committed
+    assert conn.closed
+    assert f"Inserted vehicle at 1 1" in capsys.readouterr().out
+
+
 def test_invalid_schedule_json(monkeypatch):
     connect_mock = MagicMock()
     monkeypatch.setattr(create_vehicle.db, "connect", connect_mock)
@@ -184,7 +211,7 @@ def test_insert_vehicle_cargo_missing_required_keys(monkeypatch, cargo):
     monkeypatch.setattr(create_vehicle.db, "connect", connect_mock)
 
     with pytest.raises(ValueError):
-        create_vehicle.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
+        create_vehicle.insert_vehicle(DSN, 1, 1, "[]", cargo, None)
 
     connect_mock.assert_not_called()
 
@@ -195,7 +222,7 @@ def test_insert_vehicle_cargo_resource_wrong_type(monkeypatch):
     cargo = json.dumps([{"resource": 5, "amount": 3}])
 
     with pytest.raises(ValueError):
-        create_vehicle.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
+        create_vehicle.insert_vehicle(DSN, 1, 1, "[]", cargo, None)
 
     connect_mock.assert_not_called()
 
@@ -206,6 +233,6 @@ def test_insert_vehicle_cargo_amount_non_integer(monkeypatch):
     cargo = json.dumps([{"resource": "wood", "amount": "three"}])
 
     with pytest.raises(ValueError):
-        create_vehicle.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
+        create_vehicle.insert_vehicle(DSN, 1, 1, "[]", cargo, None)
 
     connect_mock.assert_not_called()

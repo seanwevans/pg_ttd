@@ -17,7 +17,8 @@ pip install -r requirements.txt
 
 Utilities such as `python -m pgttd.run_tick` and `python -m pgttd.create_vehicle`
 expect a PostgreSQL connection string via the `--dsn` option or the
-`DATABASE_URL` environment variable.
+`DATABASE_URL` environment variable. The `create_vehicle` command defaults to
+placing vehicles at coordinates `(1, 1)` when `--x` and `--y` are omitted.
 
 ## Schema
 
