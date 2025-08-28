@@ -6,29 +6,12 @@ import json
 from . import db
 
 
-def insert_vehicle(
-    dsn: str,
-    x: int,
-    y: int,
-    schedule: str,
-    cargo: str,
-    company_id: int | None,
-) -> None:
-    """Validate arguments and insert a vehicle into the database.
-
-    Raises:
-        ValueError: If ``schedule`` or ``cargo`` are not valid JSON or fail
-            validation checks.
-    """
+def validate_schedule(schedule: str) -> list[dict[str, int]]:
+    """Parse and validate a schedule JSON string."""
     try:
         schedule_obj = json.loads(schedule)
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON for --schedule: {e.msg}") from e
-
-    try:
-        cargo_obj = json.loads(cargo)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON for --cargo: {e.msg}") from e
 
     if not isinstance(schedule_obj, list):
         raise ValueError("--schedule must be a JSON array")
@@ -42,6 +25,15 @@ def insert_vehicle(
                 raise ValueError(
                     f"Schedule entry {idx} key '{coord}' must be an integer"
                 )
+    return schedule_obj
+
+
+def validate_cargo(cargo: str) -> list[dict[str, object]]:
+    """Parse and validate a cargo JSON string."""
+    try:
+        cargo_obj = json.loads(cargo)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON for --cargo: {e.msg}") from e
 
     if not isinstance(cargo_obj, list):
         raise ValueError("--cargo must be a JSON array")
@@ -56,6 +48,25 @@ def insert_vehicle(
             raise ValueError(f"Cargo entry {idx} key 'resource' must be a string")
         if not isinstance(item["amount"], int):
             raise ValueError(f"Cargo entry {idx} key 'amount' must be an integer")
+    return cargo_obj
+
+
+def insert_vehicle(
+    dsn: str,
+    x: int,
+    y: int,
+    schedule: str,
+    cargo: str,
+    company_id: int | None,
+) -> None:
+    """Validate arguments and insert a vehicle into the database.
+
+    Raises:
+        ValueError: If ``schedule`` or ``cargo`` are not valid JSON or fail
+            validation checks.
+    """
+    schedule_obj = validate_schedule(schedule)
+    cargo_obj = validate_cargo(cargo)
 
     with db.connect(dsn) as conn:
         with conn.cursor() as cur:
