@@ -114,9 +114,14 @@ def advance_tick(conn) -> None:
 # ---------------------------------------------------------------------------
 
 
-def colour_pair(colour: str, cache: dict[str, int]) -> int:
+COLOUR_CACHE: dict[str, int] = {}
+
+
+def colour_pair(colour: str, cache: dict[str, int] | None = None) -> int:
     """Return a curses color pair for a color name."""
 
+    if cache is None:
+        cache = COLOUR_CACHE
     colour = colour.lower()
     if colour not in cache:
         idx = len(cache) + 1
@@ -126,11 +131,12 @@ def colour_pair(colour: str, cache: dict[str, int]) -> int:
     return curses.color_pair(cache[colour])
 
 
-def render(stdscr, tiles: Iterable[Tile]) -> None:
+def render(stdscr, tiles: Iterable[Tile], colour_cache: dict[str, int] | None = None) -> None:
     """Render tiles onto the curses screen."""
 
+    if colour_cache is None:
+        colour_cache = COLOUR_CACHE
     stdscr.erase()
-    colour_cache: dict[str, int] = {}
     for tile in tiles:
         try:
             stdscr.addch(tile.y, tile.x, tile.ch, colour_pair(tile.color, colour_cache))
@@ -158,7 +164,7 @@ def main(stdscr, dsn: str | None, refresh: float, step: bool) -> None:
     try:
         while True:
             tiles = fetch_tiles(conn)
-            render(stdscr, tiles)
+            render(stdscr, tiles, COLOUR_CACHE)
             ch = stdscr.getch()
             if ch == ord("q"):
                 break
