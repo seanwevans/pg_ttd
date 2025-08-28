@@ -16,7 +16,7 @@ import io
 import struct
 import zlib
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any
 
 
 def quote_sql(value: Any) -> str:
@@ -41,14 +41,14 @@ def insert_statement(name: str, b64: str) -> str:
 
 
 # Basic palette of sprite colors.
-PALETTE: Dict[str, Tuple[int, int, int]] = {
+PALETTE: dict[str, tuple[int, int, int]] = {
     "red": (255, 0, 0),
     "green": (0, 255, 0),
     "blue": (0, 0, 255),
 }
 
 
-def _png_from_palette_pillow(color: Tuple[int, int, int]) -> bytes:
+def _png_from_palette_pillow(color: tuple[int, int, int]) -> bytes:
     """Generate a PNG image using Pillow."""
     from PIL import Image
 
@@ -58,7 +58,7 @@ def _png_from_palette_pillow(color: Tuple[int, int, int]) -> bytes:
     return buf.getvalue()
 
 
-def _png_from_palette_stdlib(color: Tuple[int, int, int]) -> bytes:
+def _png_from_palette_stdlib(color: tuple[int, int, int]) -> bytes:
     """Generate a minimal 1x1 PNG using only the standard library."""
 
     r, g, b = color
@@ -85,7 +85,7 @@ def _png_from_palette_stdlib(color: Tuple[int, int, int]) -> bytes:
     )
 
 
-def generate_palette() -> Dict[str, str]:
+def generate_palette() -> dict[str, str]:
     """Return a mapping of sprite name to Base64-encoded PNG."""
     try:
         # Attempt to use Pillow if available
@@ -95,7 +95,7 @@ def generate_palette() -> Dict[str, str]:
     except Exception:  # pragma: no cover - Pillow not available
         generator = _png_from_palette_stdlib
 
-    sprites: Dict[str, str] = {}
+    sprites: dict[str, str] = {}
     for name, rgb in PALETTE.items():
         png_bytes = generator(rgb)
         sprites[name] = base64.b64encode(png_bytes).decode("ascii")
