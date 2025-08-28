@@ -8,29 +8,29 @@ The roadmap balances incremental playability with long-term architectural goals.
 
 ## Stage 0 — Foundations (MVP Skeleton)
 
-- [ ] **Schema bootstrapping**
+- [x] **Schema bootstrapping**
   - Tables for `tiles`, `terrain`, `industries`, `vehicles`, `companies`.
   - Metadata table for `game_state` (tick counter, seed, parameters).
-- [ ] **Stored procedures**
+- [x] **Stored procedures**
   - `new_game(width, height)`
   - `tick()`
-- [ ] **Graphics placeholders**
+- [x] **Graphics placeholders**
   - Script to generate dummy tile sprites stored in DB (e.g., base64 PNGs).
-- [ ] **Basic renderer**
+- [x] **Basic renderer**
   - Ncurses or HTTPX script to visualize map state from queries.
 
 ---
 
 ## Stage 1 — Core Simulation Loop
 
-- [ ] Implement economy tick:
+- [x] Implement economy tick:
   - Resource growth/decay rules.
   - Industry input → output cycles.
-- [ ] Vehicles:
+- [x] Vehicles:
   - Encode as rows with position, schedule, cargo.
   - Simple movement per tick.
-- [ ] Pathfinding stubs (stored procedure placeholders).
-- [ ] Company balance sheets (profit/loss tracked in DB).
+- [x] Pathfinding stubs (stored procedure placeholders).
+- [x] Company balance sheets (profit/loss tracked in DB).
 
 ---
 
@@ -93,7 +93,8 @@ The roadmap balances incremental playability with long-term architectural goals.
 
 ## Current Status
 
-- Schema: 🚧 draft in progress.  
-- Simulation loop: ⏳ planned.  
-- Renderer: ⏳ placeholder graphics next.  
+- Schema: ✅ base tables and metadata established.
+- Simulation loop: ✅ tick, economy, and movement procedures in place.
+- Renderer: ✅ CLI viewer with placeholder sprites.
+- Player actions: ⏳ design phase.
 
