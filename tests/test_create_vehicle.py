@@ -107,6 +107,62 @@ def test_invalid_schedule_json(monkeypatch):
     connect_mock.assert_not_called()
 
 
+def test_validate_schedule_success():
+    schedule = '[{"x":1,"y":2}]'
+    assert cv_module.validate_schedule(schedule) == [{"x": 1, "y": 2}]
+
+
+@pytest.mark.parametrize(
+    "schedule, msg",
+    [
+        ("not json", "Invalid JSON for --schedule"),
+        ("{}", "--schedule must be a JSON array"),
+        ("[1]", "Schedule entry 0 must be an object"),
+        ("[{\"y\":2}]", "Schedule entry 0 missing 'x'"),
+        ("[{\"x\":2}]", "Schedule entry 0 missing 'y'"),
+        ("[{\"x\":\"1\",\"y\":2}]", "Schedule entry 0 key 'x' must be an integer"),
+        ("[{\"x\":1,\"y\":\"2\"}]", "Schedule entry 0 key 'y' must be an integer"),
+    ],
+)
+def test_validate_schedule_errors(schedule, msg):
+    with pytest.raises(ValueError, match=msg):
+        cv_module.validate_schedule(schedule)
+
+
+def test_validate_cargo_success():
+    cargo = '[{"resource":"wood","amount":3}]'
+    assert cv_module.validate_cargo(cargo) == [{"resource": "wood", "amount": 3}]
+
+
+@pytest.mark.parametrize(
+    "cargo, msg",
+    [
+        ("not json", "Invalid JSON for --cargo"),
+        ("{}", "--cargo must be a JSON array"),
+        ("[1]", "Cargo entry 0 must be an object"),
+        (
+            '[{"resource":"wood"}]',
+            "Cargo entry 0 must contain 'resource' and 'amount' keys",
+        ),
+        (
+            '[{"amount":3}]',
+            "Cargo entry 0 must contain 'resource' and 'amount' keys",
+        ),
+        (
+            '[{"resource":5,"amount":3}]',
+            "Cargo entry 0 key 'resource' must be a string",
+        ),
+        (
+            '[{"resource":"wood","amount":"3"}]',
+            "Cargo entry 0 key 'amount' must be an integer",
+        ),
+    ],
+)
+def test_validate_cargo_errors(cargo, msg):
+    with pytest.raises(ValueError, match=msg):
+        cv_module.validate_cargo(cargo)
+
+
 @pytest.mark.parametrize(
     "cargo",
     [
