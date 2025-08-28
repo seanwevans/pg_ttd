@@ -3,6 +3,7 @@ import sys
 from unittest.mock import MagicMock
 
 import pytest
+from psycopg.types.json import Json
 
 from pgttd import create_vehicle
 
@@ -88,13 +89,13 @@ def test_main_success(monkeypatch, capsys):
 
     sql, params = cursor.executed
     assert "INSERT INTO vehicles" in sql
-    assert params == (
-        1,
-        2,
-        json.dumps([{"x": 1, "y": 2}]),
-        json.dumps([{"resource": "wood", "amount": 3}]),
-        7,
-    )
+    assert params[0] == 1
+    assert params[1] == 2
+    assert isinstance(params[2], Json)
+    assert params[2].obj == [{"x": 1, "y": 2}]
+    assert isinstance(params[3], Json)
+    assert params[3].obj == [{"resource": "wood", "amount": 3}]
+    assert params[4] == 7
     assert conn.committed
     assert conn.closed
     assert f"Inserted vehicle at 1 2" in capsys.readouterr().out
@@ -154,10 +155,10 @@ def test_validate_schedule_success():
         ("not json", "Invalid JSON for --schedule"),
         ("{}", "--schedule must be a JSON array"),
         ("[1]", "Schedule entry 0 must be an object"),
-        ("[{\"y\":2}]", "Schedule entry 0 missing 'x'"),
-        ("[{\"x\":2}]", "Schedule entry 0 missing 'y'"),
-        ("[{\"x\":\"1\",\"y\":2}]", "Schedule entry 0 key 'x' must be an integer"),
-        ("[{\"x\":1,\"y\":\"2\"}]", "Schedule entry 0 key 'y' must be an integer"),
+        ('[{"y":2}]', "Schedule entry 0 missing 'x'"),
+        ('[{"x":2}]', "Schedule entry 0 missing 'y'"),
+        ('[{"x":"1","y":2}]', "Schedule entry 0 key 'x' must be an integer"),
+        ('[{"x":1,"y":"2"}]', "Schedule entry 0 key 'y' must be an integer"),
     ],
 )
 def test_validate_schedule_errors(schedule, msg):
