@@ -1,39 +1,10 @@
-"""Wrapper script to advance the game tick."""
+"""Command-line wrapper for :mod:`pgttd.run_tick`."""
 
-import argparse
-import logging
-import sys
-
-import pgttd.db as db
+from pgttd.run_tick import main
 
 
-def main() -> int:
-    """Call the ``tick`` stored procedure."""
-    parser = argparse.ArgumentParser(description="Advance the game tick")
-    db.add_dsn_argument(parser)
-    args = parser.parse_args()
-    db.parse_dsn(args)
-
-    conn = None
-    try:
-        with db.connect(args.dsn) as conn:
-            with conn.cursor() as cur:
-                cur.execute("CALL tick()")
-            conn.commit()
-        logging.info("tick() executed successfully")
-        return 0
-
-    except Exception:  # pragma: no cover - simple CLI logging
-        logging.exception("tick() execution failed")
-        if conn is not None:
-            try:
-                conn.rollback()
-            except Exception:
-                pass
-        return 1
-
-
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover - script execution
     import sys
 
     sys.exit(main())
+

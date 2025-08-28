@@ -60,7 +60,7 @@ def test_main_success(monkeypatch):
         return conn
 
     monkeypatch.setattr(run_tick.db, "connect", fake_connect)
-    monkeypatch.setattr(sys, "argv", ["run_tick.py", "--dsn", DSN])
+    monkeypatch.setattr(sys, "argv", ["pgttd.run_tick", "--dsn", DSN])
 
     rc = run_tick.main()
 
@@ -76,7 +76,7 @@ def test_main_failure(monkeypatch):
     conn = DummyConnection(cursor)
 
     monkeypatch.setattr(run_tick.db, "connect", lambda dsn: conn)
-    monkeypatch.setattr(sys, "argv", ["run_tick.py", "--dsn", DSN])
+    monkeypatch.setattr(sys, "argv", ["pgttd.run_tick", "--dsn", DSN])
 
     rc = run_tick.main()
 
