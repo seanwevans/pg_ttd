@@ -3,7 +3,6 @@
 import argparse
 import logging
 import sys
-from contextlib import ExitStack
 
 from . import db
 
@@ -15,10 +14,7 @@ def main() -> int:
     args, _ = parser.parse_known_args()
     db.parse_dsn(args)
 
-    with ExitStack() as stack:
-        conn_ctx = db.connect(args.dsn)
-        conn = stack.enter_context(conn_ctx) if hasattr(conn_ctx, "__enter__") else conn_ctx
-        stack.callback(getattr(conn, "close", lambda: None))
+    with db.connect(args.dsn) as conn:
         try:
             with conn.cursor() as cur:
                 cur.execute("CALL tick()")

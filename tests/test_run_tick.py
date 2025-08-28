@@ -1,4 +1,3 @@
-import contextlib
 import sys
 from unittest import mock
 
@@ -90,12 +89,18 @@ def test_main_failure(monkeypatch):
 def test_main_rolls_back_on_failure(monkeypatch):
     conn = mock.MagicMock()
     cur = mock.MagicMock()
+    conn.__enter__.return_value = conn
+
+    def exit_side_effect(exc_type, exc, tb):
+        conn.close()
+        return False
+
+    conn.__exit__.side_effect = exit_side_effect
     conn.cursor.return_value.__enter__.return_value = cur
+    conn.cursor.return_value.__exit__.return_value = False
     cur.execute.side_effect = RuntimeError
 
-    monkeypatch.setattr(
-        run_tick.db, "connect", lambda dsn: contextlib.nullcontext(conn)
-    )
+    monkeypatch.setattr(run_tick.db, "connect", lambda dsn: conn)
     monkeypatch.setattr(run_tick.db, "parse_dsn", lambda args: args)
 
     result = run_tick.main()
