@@ -1,6 +1,8 @@
 import types
 import tracemalloc
 
+import pytest
+
 from renderer.cli_viewer import render, Tile
 
 class DummyScreen:
@@ -12,7 +14,8 @@ class DummyScreen:
         pass
 
 
-def test_render_uses_less_memory_with_generator(monkeypatch):
+@pytest.mark.parametrize("N", [10_000])
+def test_render_uses_less_memory_with_generator(monkeypatch, N):
     dummy_curses = types.SimpleNamespace(
         COLOR_BLACK=0,
         COLOR_RED=1,
@@ -28,7 +31,6 @@ def test_render_uses_less_memory_with_generator(monkeypatch):
     monkeypatch.setattr("renderer.cli_viewer.curses", dummy_curses, raising=False)
 
     screen = DummyScreen()
-    N = 100000
 
     def generate_tiles(n):
         for i in range(n):
