@@ -68,9 +68,15 @@ def load_config() -> dict[str, str]:
                 msg = f"Invalid JSON in config file '{cfg_path}': {exc.msg}"
                 raise RuntimeError(msg) from exc
 
+    pgport = os.environ.get("PGPORT", "5432")
+    try:
+        port = int(pgport)
+    except ValueError as exc:
+        raise RuntimeError(f"Invalid PGPORT value: {pgport}") from exc
+
     return {
         "host": os.environ.get("PGHOST", "localhost"),
-        "port": int(os.environ.get("PGPORT", 5432)),
+        "port": port,
         "dbname": os.environ.get("PGDATABASE", "pgttd"),
         "user": os.environ.get("PGUSER", "postgres"),
         "password": os.environ.get("PGPASSWORD", ""),
