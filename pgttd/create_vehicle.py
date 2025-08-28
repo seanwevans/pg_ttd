@@ -5,6 +5,7 @@ import json
 
 from . import db
 
+
 def insert_vehicle(
     dsn: str,
     x: int,
@@ -95,7 +96,6 @@ def main() -> None:
 
     args = parser.parse_args()
     db.parse_dsn(args)
-    db.add_dsn_argument(parser)
 
     insert_vehicle(
         dsn=args.dsn,
@@ -111,4 +111,3 @@ def main() -> None:
 
 if __name__ == "__main__":  # pragma: no cover - script execution
     main()
-
