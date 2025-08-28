@@ -165,6 +165,10 @@ def test_validate_cargo_success():
             '[{"resource":"wood","amount":"3"}]',
             "Cargo entry 0 key 'amount' must be an integer",
         ),
+        (
+            '[{"resource":"wood","amount":-1}]',
+            "Cargo entry 0 key 'amount' must be non-negative",
+        ),
     ],
 )
 def test_validate_cargo_errors(cargo, msg):
@@ -204,6 +208,17 @@ def test_insert_vehicle_cargo_amount_non_integer(monkeypatch):
     connect_mock = MagicMock()
     monkeypatch.setattr(create_vehicle.db, "connect", connect_mock)
     cargo = json.dumps([{"resource": "wood", "amount": "three"}])
+
+    with pytest.raises(ValueError):
+        create_vehicle.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
+
+    connect_mock.assert_not_called()
+
+
+def test_insert_vehicle_cargo_amount_negative(monkeypatch):
+    connect_mock = MagicMock()
+    monkeypatch.setattr(create_vehicle.db, "connect", connect_mock)
+    cargo = json.dumps([{"resource": "wood", "amount": -1}])
 
     with pytest.raises(ValueError):
         create_vehicle.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
