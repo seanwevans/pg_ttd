@@ -53,7 +53,7 @@ def collect_coverage(dsn: str) -> List[Tuple[str, float, float]]:
 
 
 def write_csv(rows: List[Tuple[str, float, float]], path: str) -> None:
-    with open(path, "w", newline="") as f:
+    with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["function", "statement_coverage", "branch_coverage"])
         writer.writerows(rows)
