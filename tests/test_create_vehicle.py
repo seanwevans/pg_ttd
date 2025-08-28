@@ -4,8 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from scripts import create_vehicle
-from pgttd import create_vehicle as cv_module
+from pgttd import create_vehicle
 
 DSN = "postgresql://example"
 
@@ -54,7 +53,7 @@ def test_main_success(monkeypatch, capsys):
         assert dsn == DSN
         return conn
 
-    monkeypatch.setattr(cv_module.db, "connect", fake_connect)
+    monkeypatch.setattr(create_vehicle.db, "connect", fake_connect)
 
     monkeypatch.setattr(
         sys,
@@ -92,9 +91,9 @@ def test_main_success(monkeypatch, capsys):
     assert f"Inserted vehicle at 1 2" in capsys.readouterr().out
 
 
-def test_invalid_schedule_json(monkeypatch, capsys):
+def test_invalid_schedule_json(monkeypatch):
     connect_mock = MagicMock()
-    monkeypatch.setattr(cv_module.db, "connect", connect_mock)
+    monkeypatch.setattr(create_vehicle.db, "connect", connect_mock)
     monkeypatch.setattr(
         sys,
         "argv",
@@ -103,23 +102,7 @@ def test_invalid_schedule_json(monkeypatch, capsys):
 
     with pytest.raises(SystemExit) as exc:
         create_vehicle.main()
-    assert exc.value.code == 1
-    assert "Invalid JSON for --schedule" in capsys.readouterr().err
-
-    connect_mock.assert_not_called()
-
-
-def test_module_main_invalid_schedule_json(monkeypatch):
-    connect_mock = MagicMock()
-    monkeypatch.setattr(cv_module.db, "connect", connect_mock)
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        ["create_vehicle.py", "--dsn", DSN, "--schedule", "not json"],
-    )
-
-    with pytest.raises(ValueError):
-        cv_module.main()
+    assert "Invalid JSON for --schedule" in str(exc.value)
 
     connect_mock.assert_not_called()
 
@@ -133,31 +116,31 @@ def test_module_main_invalid_schedule_json(monkeypatch):
 )
 def test_insert_vehicle_cargo_missing_required_keys(monkeypatch, cargo):
     connect_mock = MagicMock()
-    monkeypatch.setattr(cv_module.db, "connect", connect_mock)
+    monkeypatch.setattr(create_vehicle.db, "connect", connect_mock)
 
     with pytest.raises(ValueError):
-        cv_module.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
+        create_vehicle.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
 
     connect_mock.assert_not_called()
 
 
 def test_insert_vehicle_cargo_resource_wrong_type(monkeypatch):
     connect_mock = MagicMock()
-    monkeypatch.setattr(cv_module.db, "connect", connect_mock)
+    monkeypatch.setattr(create_vehicle.db, "connect", connect_mock)
     cargo = json.dumps([{"resource": 5, "amount": 3}])
 
     with pytest.raises(ValueError):
-        cv_module.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
+        create_vehicle.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
 
     connect_mock.assert_not_called()
 
 
 def test_insert_vehicle_cargo_amount_non_integer(monkeypatch):
     connect_mock = MagicMock()
-    monkeypatch.setattr(cv_module.db, "connect", connect_mock)
+    monkeypatch.setattr(create_vehicle.db, "connect", connect_mock)
     cargo = json.dumps([{"resource": "wood", "amount": "three"}])
 
     with pytest.raises(ValueError):
-        cv_module.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
+        create_vehicle.insert_vehicle(DSN, 0, 0, "[]", cargo, None)
 
     connect_mock.assert_not_called()

@@ -75,7 +75,8 @@ def insert_vehicle(
         conn.commit()
 
 
-def main() -> None:
+def build_arg_parser() -> argparse.ArgumentParser:
+    """Return an argument parser configured for vehicle creation."""
     parser = argparse.ArgumentParser(description="Create a vehicle")
     db.add_dsn_argument(parser)
     parser.add_argument("--x", type=int, default=0, help="Starting X coordinate")
@@ -93,18 +94,25 @@ def main() -> None:
         default="[]",
         help="JSON description of cargo",
     )
+    return parser
 
+
+def main() -> None:
+    parser = build_arg_parser()
     args = parser.parse_args()
     db.parse_dsn(args)
 
-    insert_vehicle(
-        dsn=args.dsn,
-        x=args.x,
-        y=args.y,
-        schedule=args.schedule,
-        cargo=args.cargo,
-        company_id=args.company_id,
-    )
+    try:
+        insert_vehicle(
+            dsn=args.dsn,
+            x=args.x,
+            y=args.y,
+            schedule=args.schedule,
+            cargo=args.cargo,
+            company_id=args.company_id,
+        )
+    except ValueError as e:
+        raise SystemExit(str(e)) from e
 
     print("Inserted vehicle at", args.x, args.y)
 
