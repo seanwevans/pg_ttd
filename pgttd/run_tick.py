@@ -4,6 +4,8 @@ import argparse
 import logging
 import sys
 
+import psycopg
+
 from . import db
 
 
@@ -21,7 +23,7 @@ def main() -> int:
             conn.commit()
             logging.info("tick() executed successfully")
             return 0
-        except Exception:  # pragma: no cover - simple CLI logging
+        except psycopg.Error:  # pragma: no cover - simple CLI logging
             logging.exception("tick() execution failed")
             conn.rollback()
             return 1
