@@ -82,7 +82,8 @@ def fetch_tiles(conn) -> Iterable[Tile]:
 
     sql = (
         "SELECT t.x, t.y, s.glyph, s.color FROM tiles t "
-        "JOIN sprites s ON t.sprite_id = s.id"
+        "JOIN sprites s ON t.sprite_id = s.id "
+        "ORDER BY t.y, t.x"
     )
     with conn.cursor() as cur:
         cur.execute(sql)
