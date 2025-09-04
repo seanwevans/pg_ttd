@@ -5,51 +5,9 @@ import psycopg
 import pytest
 
 from pgttd import run_tick
+from tests.helpers import DummyCursor, DummyConnection
 
 DSN = "postgresql://example"
-
-
-class DummyCursor:
-    def __init__(self, should_fail: bool = False):
-        self.should_fail = should_fail
-        self.sql = None
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc, tb):
-        pass
-
-    def execute(self, sql: str):
-        if self.should_fail:
-            raise psycopg.Error("boom")
-        self.sql = sql
-
-
-class DummyConnection:
-    def __init__(self, cursor: DummyCursor):
-        self.cursor_obj = cursor
-        self.committed = False
-        self.rolled_back = False
-        self.closed = False
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc, tb):
-        self.close()
-
-    def cursor(self):
-        return self.cursor_obj
-
-    def commit(self):
-        self.committed = True
-
-    def rollback(self):
-        self.rolled_back = True
-
-    def close(self):
-        self.closed = True
 
 
 def test_main_success(monkeypatch):
