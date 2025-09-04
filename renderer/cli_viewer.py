@@ -132,7 +132,7 @@ def color_pair(color: str, cache: dict[str, int] | None = None) -> int:
 
 
 def render(
-    stdscr, tiles: Iterable[Tile], colour_cache: dict[str, int] | None = None
+    stdscr, tiles: Iterable[Tile], color_cache: dict[str, int] | None = None
 ) -> None:
     """Render tiles onto the curses screen."""
 
@@ -166,7 +166,7 @@ def main(stdscr, dsn: str | None, refresh: float, step: bool) -> None:
     try:
         while True:
             tiles = fetch_tiles(conn)
-            render(stdscr, tiles, COLOR_CACHE)
+            render(stdscr, tiles, color_cache=COLOR_CACHE)
             ch = stdscr.getch()
             if ch == ord("q"):
                 break
