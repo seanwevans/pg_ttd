@@ -29,6 +29,9 @@ def quote_sql(value: Any) -> str:
     and ensures we can safely escape any single quotes.
     """
 
+    if value is None:
+        return "NULL"
+
     text = str(value)
     return "'" + text.replace("'", "''") + "'"
 
