@@ -6,6 +6,7 @@ import pytest
 from psycopg.types.json import Json
 
 from pgttd import create_vehicle
+from tests.helpers import DummyCursor, DummyConnection
 
 # The original tests reference a ``cv_module`` variable but never assign it.
 #
@@ -17,42 +18,6 @@ from pgttd import create_vehicle
 cv_module = create_vehicle
 
 DSN = "postgresql://example"
-
-
-class DummyCursor:
-    def __init__(self):
-        self.executed = None
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc, tb):
-        pass
-
-    def execute(self, sql, params):
-        self.executed = (sql, params)
-
-
-class DummyConnection:
-    def __init__(self, cursor: DummyCursor):
-        self.cursor_obj = cursor
-        self.committed = False
-        self.closed = False
-
-    def cursor(self):
-        return self.cursor_obj
-
-    def commit(self):
-        self.committed = True
-
-    def close(self):
-        self.closed = True
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc, tb):
-        self.close()
 
 
 def test_main_success(monkeypatch, capsys):
