@@ -42,6 +42,7 @@ def test_quote_sql_handles_various_types():
     assert generate_sprites.quote_sql("O'Reilly") == "'O''Reilly'"
     assert generate_sprites.quote_sql(42) == "'42'"
     assert generate_sprites.quote_sql(Path("a'b")) == "'a''b'"
+    assert generate_sprites.quote_sql(None) == "NULL"
 
 
 def test_main_writes_expected_file(tmp_path, monkeypatch, capsys):
