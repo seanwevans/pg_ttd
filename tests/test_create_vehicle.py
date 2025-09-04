@@ -116,13 +116,13 @@ def test_main_defaults(monkeypatch, capsys):
 
     sql, params = cursor.executed
     assert "INSERT INTO vehicles" in sql
-    assert params == (
-        1,
-        1,
-        json.dumps([]),
-        json.dumps([]),
-        None,
-    )
+    assert params[0] == 1
+    assert params[1] == 1
+    assert isinstance(params[2], Json)
+    assert params[2].obj == []
+    assert isinstance(params[3], Json)
+    assert params[3].obj == []
+    assert params[4] is None
     assert conn.committed
     assert conn.closed
     assert f"Inserted vehicle at 1 1" in capsys.readouterr().out
