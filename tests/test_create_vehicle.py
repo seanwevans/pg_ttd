@@ -3,6 +3,7 @@ import sys
 from unittest.mock import MagicMock
 
 import pytest
+import psycopg
 from psycopg.types.json import Json
 
 from pgttd import create_vehicle
@@ -91,6 +92,22 @@ def test_main_defaults(monkeypatch, capsys):
     assert conn.committed
     assert conn.closed
     assert f"Inserted vehicle at 1 1" in capsys.readouterr().out
+
+
+def test_main_database_error(monkeypatch):
+    error = psycopg.Error("boom")
+
+    def fake_insert_vehicle(**_kwargs):
+        raise error
+
+    monkeypatch.setattr(create_vehicle, "insert_vehicle", fake_insert_vehicle)
+    monkeypatch.setattr(sys, "argv", ["create_vehicle.py", "--dsn", DSN])
+
+    with pytest.raises(SystemExit) as exc:
+        create_vehicle.main()
+
+    assert str(exc.value) == "Database error: boom"
+    assert exc.value.code != 0
 
 
 def test_invalid_schedule_json(monkeypatch):

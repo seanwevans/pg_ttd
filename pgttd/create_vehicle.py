@@ -3,6 +3,8 @@
 import argparse
 import json
 
+import psycopg
+
 from psycopg.types.json import Json
 
 from . import db
@@ -130,6 +132,8 @@ def main() -> None:
         )
     except ValueError as e:
         raise SystemExit(str(e)) from e
+    except psycopg.Error as e:
+        raise SystemExit(f"Database error: {e}") from e
 
     print("Inserted vehicle at", args.x, args.y)
 
