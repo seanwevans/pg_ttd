@@ -12,6 +12,12 @@ def test_load_config_invalid_json(tmp_path, monkeypatch):
         load_config()
 
 
+def test_load_config_missing_config_file(monkeypatch):
+    monkeypatch.setenv("PGTTD_CONFIG", "/nonexistent/config.json")
+    with pytest.raises(RuntimeError, match="does not exist"):
+        load_config()
+
+
 def test_load_config_invalid_pgport(monkeypatch):
     monkeypatch.setenv("PGPORT", "not-a-number")
     with pytest.raises(RuntimeError, match="Invalid PGPORT"):
