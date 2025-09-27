@@ -221,6 +221,9 @@ def main(stdscr, dsn: str | None, refresh: float, step: bool) -> None:
         raise ValueError("Refresh interval must be greater than zero")
     curses.curs_set(0)
     stdscr.nodelay(True)
+    curses.start_color()
+    if curses.has_colors() and hasattr(curses, "use_default_colors"):
+        curses.use_default_colors()
     if dsn:
         conn = db.connect(dsn)
     else:
