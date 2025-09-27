@@ -157,9 +157,24 @@ def render(
 # ---------------------------------------------------------------------------
 
 
+def positive_float(value: str) -> float:
+    """Return ``value`` as a positive float or raise an ArgumentTypeError."""
+
+    try:
+        parsed = float(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("Refresh interval must be a number") from exc
+    if parsed <= 0:
+        msg = "Refresh interval must be greater than zero"
+        raise argparse.ArgumentTypeError(msg)
+    return parsed
+
+
 def main(stdscr, dsn: str | None, refresh: float, step: bool) -> None:
     """Render the simulation in a curses window."""
 
+    if refresh <= 0:
+        raise ValueError("Refresh interval must be greater than zero")
     curses.curs_set(0)
     stdscr.nodelay(True)
     if dsn:
@@ -180,6 +195,8 @@ def main(stdscr, dsn: str | None, refresh: float, step: bool) -> None:
                 except psycopg.Error:
                     logger.error("Tick advancement failed; exiting viewer")
                     break
+            if refresh <= 0:
+                raise ValueError("Refresh interval must be greater than zero")
             time.sleep(refresh)
     finally:
         conn.close()
@@ -191,7 +208,7 @@ if __name__ == "__main__":
     db.add_dsn_argument(parser)
     parser.add_argument(
         "--refresh",
-        type=float,
+        type=positive_float,
         default=0.5,
         help="delay between screen updates in seconds",
     )
