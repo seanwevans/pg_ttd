@@ -56,18 +56,7 @@ COLOR_NAMES = {
 }
 
 
-def load_config() -> dict[str, str]:
-    """Return connection parameters from environment or config file."""
-
-    cfg_path = os.environ.get("PGTTD_CONFIG")
-    if cfg_path and os.path.exists(cfg_path):
-        with open(cfg_path, "r", encoding="utf8") as cfg:
-            try:
-                return json.load(cfg)
-            except json.JSONDecodeError as exc:
-                msg = f"Invalid JSON in config file '{cfg_path}': {exc.msg}"
-                raise RuntimeError(msg) from exc
-
+def _load_env_defaults() -> dict[str, str | int]:
     pgport = os.environ.get("PGPORT", "5432")
     try:
         port = int(pgport)
@@ -81,6 +70,65 @@ def load_config() -> dict[str, str]:
         "user": os.environ.get("PGUSER", "postgres"),
         "password": os.environ.get("PGPASSWORD", ""),
     }
+
+
+def _coerce_port(value: object, source: str) -> int:
+    if isinstance(value, bool):
+        raise RuntimeError(
+            f"Config file '{source}' field 'port' must be an integer value"
+        )
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        try:
+            return int(value)
+        except ValueError as exc:
+            msg = f"Config file '{source}' field 'port' must be an integer value"
+            raise RuntimeError(msg) from exc
+    raise RuntimeError(f"Config file '{source}' field 'port' must be an integer value")
+
+
+def load_config() -> dict[str, str | int]:
+    """Return connection parameters from environment or config file."""
+
+    defaults = _load_env_defaults()
+
+    cfg_path = os.environ.get("PGTTD_CONFIG")
+    if cfg_path and os.path.exists(cfg_path):
+        with open(cfg_path, "r", encoding="utf8") as cfg:
+            try:
+                data = json.load(cfg)
+            except json.JSONDecodeError as exc:
+                msg = f"Invalid JSON in config file '{cfg_path}': {exc.msg}"
+                raise RuntimeError(msg) from exc
+
+        if not isinstance(data, dict):
+            raise RuntimeError(
+                "Config file must contain a JSON object mapping connection fields to values"
+            )
+
+        config = defaults.copy()
+        allowed_fields = set(defaults)
+        for key, value in data.items():
+            if not isinstance(key, str):
+                raise RuntimeError(
+                    "Config file keys must be strings representing connection fields"
+                )
+            if key not in allowed_fields:
+                raise RuntimeError(
+                    f"Config file contains unsupported connection field '{key}'"
+                )
+            if key == "port":
+                config[key] = _coerce_port(value, cfg_path)
+            else:
+                if not isinstance(value, str):
+                    raise RuntimeError(
+                        f"Config file '{cfg_path}' field '{key}' must be a string value"
+                    )
+                config[key] = value
+        return config
+
+    return defaults
 
 
 def fetch_tiles(conn) -> Iterable[Tile]:
