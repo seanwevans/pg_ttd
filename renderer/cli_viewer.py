@@ -60,7 +60,11 @@ def load_config() -> dict[str, str]:
     """Return connection parameters from environment or config file."""
 
     cfg_path = os.environ.get("PGTTD_CONFIG")
-    if cfg_path and os.path.exists(cfg_path):
+    if cfg_path:
+        if not os.path.exists(cfg_path):
+            raise RuntimeError(
+                f"Config file '{cfg_path}' referenced by PGTTD_CONFIG does not exist"
+            )
         with open(cfg_path, "r", encoding="utf8") as cfg:
             try:
                 return json.load(cfg)
