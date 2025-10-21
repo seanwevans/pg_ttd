@@ -1,5 +1,7 @@
-[![CI](https://github.com/seanwevans/pg_ttd/actions/workflows/tests.yml/badge.svg)](https://github.com/seanwevans/pg_ttd/actions/workflows/tests.yml)
 # pg_ttd
+<img width="256" alt="Buffalo buffalo Buffalo buffalo buffalo buffalo Buffalo buffalo" src="https://github.com/user-attachments/assets/d46a4afa-aee9-4575-8338-bff952c32a3c" />
+
+[![CI](https://github.com/seanwevans/pg_ttd/actions/workflows/tests.yml/badge.svg)](https://github.com/seanwevans/pg_ttd/actions/workflows/tests.yml)
 
 **pg_ttd** is a prototype of an attempt at *OpenTTD inside PostgreSQL*.
 We attempt to reproduce at least part of OpenTTD within a Postgres database.
